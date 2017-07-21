@@ -130,6 +130,13 @@ defmodule Pathfinder.Board do
   @doc """
   Sets a wall on the board.
   """
+  def set_wall(board, row, value) do
+    i = index(row, 1)
+    with {:ok, cell} <- Map.fetch(board, i) do
+      cell = Kernel.put_elem(cell, 4, value)
+      {:ok, Map.put(board, i, cell)}
+    end
+  end
   def set_wall(board, {row1, col1}, {row2, col2}, value) do
     index1 = index(row1, col1)
     index2 = index(row2, col2)
@@ -146,8 +153,8 @@ defmodule Pathfinder.Board do
     with {:ok, direction} <- direction,
          {:ok, cell1} <- Map.fetch(board, index1),
          {:ok, cell2} <- Map.fetch(board, index2) do
-      cell1 = Kernel.put_elem(cell1, direction, true)
-      cell2 = Kernel.put_elem(cell2, reverse(direction), true)
+      cell1 = Kernel.put_elem(cell1, direction, value)
+      cell2 = Kernel.put_elem(cell2, reverse(direction), value)
       board =
         board
         |> Map.put(index1, cell1)
