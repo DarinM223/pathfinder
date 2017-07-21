@@ -22,7 +22,7 @@ defmodule Pathfinder.Board do
   Creates an empty board.
 
       iex> board = Pathfinder.Board.new()
-      iex> board |> Map.keys() |> length == 36
+      iex> board |> Map.keys() |> length == (36 + 2)
       true
 
   """
@@ -50,6 +50,8 @@ defmodule Pathfinder.Board do
     |> Enum.reduce(%{}, fn {cell, index}, acc ->
          Map.put(acc, index, cell)
        end)
+    |> Map.put(:player, nil)
+    |> Map.put(:goal, nil)
   end
 
   @doc """
@@ -89,7 +91,13 @@ defmodule Pathfinder.Board do
 
   defp middle_row([{data, _, _, _, left} | tail]) do
     left_wall = if left, do: "|", else: " "
-    data = if data, do: " 0 ", else: "   "
+    data =
+      case data do
+        :player -> " P "
+        :goal -> " G "
+        :marker -> " 0 "
+        _ -> "   "
+      end
 
     [left_wall, data, middle_row(tail)]
   end
@@ -105,7 +113,8 @@ defmodule Pathfinder.Board do
   defp bottom_row(_), do: "+\n"
 
   @doc """
-  Returns the index of the row and column position in the board.
+  Returns the index of the row and column position in the board
+  or -1 if the row or column is invalid.
   The rows and columns are one-indexed.
 
   ## Examples
@@ -119,10 +128,16 @@ defmodule Pathfinder.Board do
       iex> Pathfinder.Board.index({1, 1})
       0
 
+      iex> Pathfinder.Board.index(0, 1)
+      -1
+
   """
-  def index(cell_row, cell_col) do
+  def index(cell_row, cell_col)
+      when cell_row > 0 and cell_row <= @column_size and
+           cell_col > 0 and cell_col <= @row_size do
     (cell_row - 1) * @row_size + (cell_col - 1)
   end
+  def index(_, _), do: -1
   def index({cell_row, cell_col}) do
     index(cell_row, cell_col)
   end
@@ -192,7 +207,51 @@ defmodule Pathfinder.Board do
   Places a player on a row in the board.
   """
   def place_player(board, row) do
-    raise "Not implemented"
+    i = index(row, 1)
+    with {:ok, {_, _, _, _, left} = cell} <- Map.fetch(board, i) do
+      if left do
+        {:error, :wall}
+      else
+        board =
+          board
+          |> Map.put(i, Kernel.put_elem(cell, 0, :player))
+          |> Map.put(:player, {row, 1})
+        {:ok, board}
+      end
+    end
+  end
+
+  @doc """
+  Removes the player from the board.
+  Only works if the player is next to a row entry
+  (a row on the first column) that does not have a left wall.
+  """
+  def remove_player(board) do
+    with {row, col} when col == 1 <- Map.get(board, :player),
+         pos_index <- index(row, col),
+         {:ok, cell} when not elem(cell, 4) <- Map.fetch(board, pos_index) do
+      board =
+        board
+        |> Map.put(pos_index, Kernel.put_elem(cell, 0, :marker))
+        |> Map.put(:player, nil)
+      {:ok, board}
+    else
+      _ -> :error
+    end
+  end
+
+  @doc """
+  Places the goal on a cell in the board.
+  """
+  def place_goal(board, position) do
+    i = index(position)
+    with {:ok, cell} <- Map.fetch(board, i) do
+      board =
+        board
+        |> Map.put(i, Kernel.put_elem(cell, 0, :goal))
+        |> Map.put(:goal, position)
+      {:ok, board}
+    end
   end
 
   @doc """
@@ -202,11 +261,6 @@ defmodule Pathfinder.Board do
     # TODO(DarinM223): remove player from existing position
     # TODO(DarinM223): place a marker in the existing position
     # TODO(DarinM223): place player in new position
-    raise "Not implemented"
-  end
-
-  # Place an object at the given position.
-  defp place(board, obj, cell_index) do
     raise "Not implemented"
   end
 end

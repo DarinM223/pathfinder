@@ -84,4 +84,46 @@ defmodule Pathfinder.BoardTest do
     {:ok, board} = Board.set_wall(board, row, false)
     assert board == Board.new()
   end
+
+  test "place_player/2 returns error if wall is blocked" do
+    {:ok, board} = Board.set_wall(Board.new(), 1, true)
+    assert {:error, :wall} = Board.place_player(board, 1)
+  end
+
+  test "place_player/2 properly places player at row entry" do
+    {:ok, board} = Board.place_player(Board.new(), 1)
+    assert {row, col} = Map.get(board, :player)
+    index = Board.index(row, col)
+    assert {:player, _, _, _, _} = Map.get(board, index)
+  end
+
+  test "place_goal/2 properly places goal at position" do
+    goal_pos = {3, 4}
+    {:ok, board} = Board.place_goal(Board.new(), goal_pos)
+    assert Map.get(board, :goal) == goal_pos
+    index = Board.index(goal_pos)
+    assert {:goal, _, _, _, _} = Map.get(board, index)
+  end
+
+  test "remove_player/1 fails if player is not on board" do
+    assert Board.remove_player(Board.new()) == :error
+  end
+
+  test "remove_player/1 fails if player is not next to a row entry" do
+    board = Map.put(Board.new(), :player, {3, 4})
+    assert Board.remove_player(board) == :error
+  end
+
+  test "remove_player/1 fails if row entry has a left wall" do
+    {:ok, board} = Board.place_player(Board.new(), 1)
+    {:ok, board} = Board.set_wall(board, 1, true)
+    assert Board.remove_player(board) == :error
+  end
+
+  test "remove_player/1 properly removes player" do
+    {:ok, board} = Board.place_player(Board.new(), 1)
+    {:ok, board} = Board.remove_player(board)
+    assert Map.get(board, :player) == nil
+    assert {:marker, _, _, _, _} = Map.get(board, Board.index(1, 1))
+  end
 end
