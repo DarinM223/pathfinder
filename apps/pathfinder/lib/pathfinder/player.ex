@@ -1,8 +1,21 @@
-defmodule Pathfinder.Player do
+defprotocol Pathfinder.Player do
   @moduledoc """
   Describes a pathfinder player.
-
-  Each player has two boards, one board
-  for tracking the
   """
+
+  @doc """
+  Returns a list of changes necessary to build their grid.
+  """
+  def build_changes(player)
+
+  @doc """
+  Returns the action to perform.
+  """
+  def move(player)
+
+  @doc """
+  Updates the player after the result
+  of the action is determined.
+  """
+  def update(player, result)
 end

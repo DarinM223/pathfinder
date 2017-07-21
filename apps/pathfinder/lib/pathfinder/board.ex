@@ -20,6 +20,11 @@ defmodule Pathfinder.Board do
 
   @doc """
   Creates an empty board.
+
+      iex> board = Pathfinder.Board.new()
+      iex> board |> Map.keys() |> length == 36
+      true
+
   """
   def new do
     (for row <- 1..@column_size,
@@ -50,10 +55,12 @@ defmodule Pathfinder.Board do
   @doc """
   Prints a board to the console.
 
+  ## Example
+
       iex> alias Pathfinder.Board
-      iex> Board.to_io_list(Board.new())
-      iex> nil
-      nil
+      iex> s = Board.new() |> Board.to_io_list() |> Enum.join()
+      iex> is_binary(s)
+      true
 
   """
   def to_io_list(board) do
@@ -82,9 +89,9 @@ defmodule Pathfinder.Board do
 
   defp middle_row([{data, _, _, _, left} | tail]) do
     left_wall = if left, do: "|", else: " "
-    data = if data, do: "0", else: " "
+    data = if data, do: " 0 ", else: "   "
 
-    [left_wall, " ", data, " ", middle_row(tail)]
+    [left_wall, data, middle_row(tail)]
   end
   defp middle_row(_), do: "|\n"
 
@@ -100,26 +107,78 @@ defmodule Pathfinder.Board do
   @doc """
   Returns the index of the row and column position in the board.
   The rows and columns are one-indexed.
+
+  ## Examples
+
+      iex> Pathfinder.Board.index(6, 6)
+      35
+
+      iex> Pathfinder.Board.index(1, 1)
+      0
+
+      iex> Pathfinder.Board.index({1, 1})
+      0
+
   """
   def index(cell_row, cell_col) do
     (cell_row - 1) * @row_size + (cell_col - 1)
   end
-
-  @doc """
-  Places a wall on a board.
-  """
-  def place_wall(board, {row, col}, slot_position) do
-    raise "Not implemented"
+  def index({cell_row, cell_col}) do
+    index(cell_row, cell_col)
   end
 
   @doc """
-  Removes a wall on the board.
-
-  Fails if a wall doesn't exist at the given position or
-  if the wall is an edge wall.
+  Sets a wall on the board.
   """
-  def remove_wall(board, {row, col}, slot_position) do
-    raise "Not implemented"
+  def set_wall(board, {row1, col1}, {row2, col2}, value) do
+    index1 = index(row1, col1)
+    index2 = index(row2, col2)
+
+    direction =
+      cond do
+        row1 == row2 - 1 -> {:ok, 3} # bottom
+        row2 == row1 - 1 -> {:ok, 1} # top
+        col1 == col2 - 1 -> {:ok, 2} # right
+        col2 == col1 - 1 -> {:ok, 4} # left
+        true -> {:error, :invalid_cells}
+      end
+
+    with {:ok, direction} <- direction,
+         {:ok, cell1} <- Map.fetch(board, index1),
+         {:ok, cell2} <- Map.fetch(board, index2) do
+      cell1 = Kernel.put_elem(cell1, direction, true)
+      cell2 = Kernel.put_elem(cell2, reverse(direction), true)
+      board =
+        board
+        |> Map.put(index1, cell1)
+        |> Map.put(index2, cell2)
+      {:ok, board}
+    end
+  end
+
+  @doc """
+  Reverses a direction.
+
+  A direction is given by its index in the tuple
+  {_, top, right, bottom, left}.
+
+  ## Examples
+
+      iex> Pathfinder.Board.reverse(1) # top -> bottom
+      3
+
+      iex> Pathfinder.Board.reverse(4) # left -> right
+      2
+
+  """
+  def reverse(direction) do
+    case direction do
+      1 -> 3
+      2 -> 4
+      3 -> 1
+      4 -> 2
+      _ -> raise "Invalid direction: #{inspect direction}"
+    end
   end
 
   @doc """
@@ -131,8 +190,6 @@ defmodule Pathfinder.Board do
 
   @doc """
   Moves a player in the given direction.
-
-  Directions can be :up, :down, :left, or :right
   """
   def move_player(board, direction) do
     # TODO(DarinM223): remove player from existing position

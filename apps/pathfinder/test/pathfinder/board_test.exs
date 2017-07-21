@@ -28,4 +28,39 @@ defmodule Pathfinder.BoardTest do
 
     assert result == expected
   end
+
+  test "set_wall/3 with non-adjacent cells" do
+    cell1 = {6, 6}
+    cell2 = {6, 4}
+
+    assert {:error, :invalid_cells} = Board.set_wall(Board.new(), cell1, cell2, true)
+  end
+
+  test "set_wall/3 with top or bottom adjacency" do
+    cell1 = {4, 3}
+    cell2 = {5, 3}
+    {index1, index2} = {Board.index(cell1), Board.index(cell2)}
+
+    {:ok, board} = Board.set_wall(Board.new(), cell1, cell2, true)
+    assert {_, false, false, true, false} = Map.get(board, index1)
+    assert {_, true, false, false, false} = Map.get(board, index2)
+
+    {:ok, board} = Board.set_wall(Board.new(), cell2, cell1, true)
+    assert {_, false, false, true, false} = Map.get(board, index1)
+    assert {_, true, false, false, false} = Map.get(board, index2)
+  end
+
+  test "set_wall/3 with left or right adjacency" do
+    cell1 = {3, 5}
+    cell2 = {3, 4}
+    {index1, index2} = {Board.index(cell1), Board.index(cell2)}
+
+    {:ok, board} = Board.set_wall(Board.new(), cell1, cell2, true)
+    assert {_, false, false, false, true} = Map.get(board, index1)
+    assert {_, false, true, false, false} = Map.get(board, index2)
+
+    {:ok, board} = Board.set_wall(Board.new(), cell2, cell1, true)
+    assert {_, false, false, false, true} = Map.get(board, index1)
+    assert {_, false, true, false, false} = Map.get(board, index2)
+  end
 end
