@@ -33,7 +33,7 @@ defmodule Pathfinder.BoardTest do
     cell1 = {6, 6}
     cell2 = {6, 4}
 
-    assert {:error, :invalid_cells} = Board.set_wall(Board.new(), cell1, cell2, true)
+    assert Board.set_wall(Board.new(), cell1, cell2, true) == :error
   end
 
   test "set_wall/4 with top or bottom adjacency" do
@@ -125,5 +125,24 @@ defmodule Pathfinder.BoardTest do
     {:ok, board} = Board.remove_player(board)
     assert Map.get(board, :player) == nil
     assert {:marker, _, _, _, _} = Map.get(board, Board.index(1, 1))
+  end
+
+  test "move_player/2 fails if player tries to move outside left side of grid" do
+    {:ok, board} = Board.place_player(Board.new(), 1)
+    assert Board.move_player(board, 4) == :error
+  end
+
+  test "move_player/2 fails if player tries to move through wall" do
+    {:ok, board} = Board.place_player(Board.new(), 1)
+    {:ok, board} = Board.set_wall(board, {1, 1}, {1, 2}, true)
+    assert Board.move_player(board, 2) == :error
+  end
+
+  test "move_player/2 properly moves player" do
+    {:ok, board} = Board.place_player(Board.new(), 1)
+    {:ok, board} = Board.move_player(board, 2)
+    assert Map.get(board, :player) == {1, 2}
+    assert {:marker, _, _, _, _} = Map.get(board, Board.index(1, 1))
+    assert {:player, _, _, _, _} = Map.get(board, Board.index(1, 2))
   end
 end

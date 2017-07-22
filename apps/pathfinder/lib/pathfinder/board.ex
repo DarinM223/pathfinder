@@ -17,6 +17,7 @@ defmodule Pathfinder.Board do
 
   @row_size 6
   @column_size 6
+  @directions [1, 2, 3, 4]
 
   @doc """
   Creates an empty board.
@@ -112,6 +113,14 @@ defmodule Pathfinder.Board do
   end
   defp bottom_row(_), do: "+\n"
 
+  # Validates that the row and column are inside the bounds of the grid.
+  defmacro validate_position(row, col) do
+    quote do
+      unquote(row) > 0 and unquote(row) <= @column_size and
+      unquote(col) > 0 and unquote(col) <= @row_size
+    end
+  end
+
   @doc """
   Returns the index of the row and column position in the board
   or -1 if the row or column is invalid.
@@ -132,15 +141,11 @@ defmodule Pathfinder.Board do
       -1
 
   """
-  def index(cell_row, cell_col)
-      when cell_row > 0 and cell_row <= @column_size and
-           cell_col > 0 and cell_col <= @row_size do
+  def index(cell_row, cell_col) when validate_position(cell_row, cell_col) do
     (cell_row - 1) * @row_size + (cell_col - 1)
   end
   def index(_, _), do: -1
-  def index({cell_row, cell_col}) do
-    index(cell_row, cell_col)
-  end
+  def index({cell_row, cell_col}), do: index(cell_row, cell_col)
 
   @doc """
   Sets a wall on the board.
@@ -156,16 +161,18 @@ defmodule Pathfinder.Board do
     index1 = index(row1, col1)
     index2 = index(row2, col2)
 
-    direction =
-      cond do
-        row1 == row2 - 1 -> {:ok, 3} # bottom
-        row2 == row1 - 1 -> {:ok, 1} # top
-        col1 == col2 - 1 -> {:ok, 2} # right
-        col2 == col1 - 1 -> {:ok, 4} # left
-        true -> {:error, :invalid_cells}
-      end
+    # Find the direction between the cells by applying every
+    # direction to the first cell and filtering the cells
+    # that don't match the second cell.
+    #
+    # Inefficient, but keeps direction details contained inside next().
+    possible_directions =
+      @directions
+      |> Stream.map(&{&1, next({row1, col1}, &1)})
+      |> Stream.filter(fn {_, e} -> e == {:ok, {row2, col2}} end)
+      |> Enum.map(&elem(&1, 0))
 
-    with {:ok, direction} <- direction,
+    with [direction | _] <- possible_directions,
          {:ok, cell1} <- Map.fetch(board, index1),
          {:ok, cell2} <- Map.fetch(board, index2) do
       cell1 = Kernel.put_elem(cell1, direction, value)
@@ -175,6 +182,8 @@ defmodule Pathfinder.Board do
         |> Map.put(index1, cell1)
         |> Map.put(index2, cell2)
       {:ok, board}
+    else
+      _ -> :error
     end
   end
 
@@ -200,6 +209,38 @@ defmodule Pathfinder.Board do
       3 -> 1
       4 -> 2
       _ -> raise "Invalid direction: #{inspect direction}"
+    end
+  end
+
+  @doc """
+  Returns the next position after applying a direction.
+
+  A direction is given by its index in the tuple
+  {_, top, right, bottom, left}.
+
+  ## Examples
+
+      iex> Pathfinder.Board.next({3, 5}, 4)
+      {:ok, {3, 4}}
+
+      iex> Pathfinder.Board.next({1, 1}, 4)
+      :error
+
+  """
+  def next({row, col}, direction) do
+    {row, col} =
+      case direction do
+        1 -> {row - 1, col}
+        2 -> {row, col + 1}
+        3 -> {row + 1, col}
+        4 -> {row, col - 1}
+        _ -> raise "Invalid direction: #{inspect direction}"
+      end
+
+    if validate_position(row, col) do
+      {:ok, {row, col}}
+    else
+      :error
     end
   end
 
@@ -258,9 +299,19 @@ defmodule Pathfinder.Board do
   Moves a player in the given direction.
   """
   def move_player(board, direction) do
-    # TODO(DarinM223): remove player from existing position
-    # TODO(DarinM223): place a marker in the existing position
-    # TODO(DarinM223): place player in new position
-    raise "Not implemented"
+    with {row, col} <- Map.get(board, :player),
+         pos_index <- index(row, col),
+         {:ok, next_pos} <- next({row, col}, direction),
+         {:ok, cell} when not elem(cell, direction) <- Map.fetch(board, pos_index) do
+      next_pos_index = index(next_pos)
+      board =
+        board
+        |> Map.put(pos_index, Kernel.put_elem(cell, 0, :marker))
+        |> Map.update!(next_pos_index, &Kernel.put_elem(&1, 0, :player))
+        |> Map.put(:player, next_pos)
+      {:ok, board}
+    else
+      _ -> :error
+    end
   end
 end
