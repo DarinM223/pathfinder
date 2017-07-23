@@ -314,4 +314,54 @@ defmodule Pathfinder.Board do
       _ -> :error
     end
   end
+
+  @doc """
+  Returns true if a goal exists and there exists a
+  possible path to the goal.
+  """
+  def valid?(board) do
+    if position = Map.get(board, :goal) do
+      queue = :queue.in(position, :queue.new())
+      discovered = Map.put(%{}, index(position), true)
+      _validate_goal(board, queue, discovered)
+    else
+      false
+    end
+  end
+
+  defp _validate_goal(board, queue, discovered) do
+    {value, queue} = :queue.out(queue)
+    case value do
+      :empty ->
+        false
+      {:value, {row, col} = pos} ->
+        case Map.get(board, index(pos)) do
+          {_, _, _, _, left} when col == 1 and not left ->
+            true
+          nil ->
+            false
+          cell ->
+            {queue, discovered} =
+              _add_next_positions(board, pos, cell, queue, discovered)
+
+            _validate_goal(board, queue, discovered)
+        end
+    end
+  end
+
+  defp _add_next_positions(board, pos, cell, queue, discovered) do
+    filter_pos = fn
+      {:ok, pos} -> not Map.has_key?(discovered, index(pos))
+      _ -> false
+    end
+
+    next_positions =
+      @directions
+      |> Stream.filter_map(&(not elem(cell, &1)), &next(pos, &1))
+      |> Stream.filter_map(filter_pos, fn {:ok, pos} -> pos end)
+
+    Enum.reduce(next_positions, {queue, discovered}, fn pos, {queue, discovered} ->
+      {:queue.in(pos, queue), Map.put(discovered, index(pos), true)}
+    end)
+  end
 end
