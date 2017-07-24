@@ -1,27 +1,29 @@
-defmodule Pathfinder.EtsStore do
-  alias Pathfinder.EtsStore
+defmodule Pathfinder.Store.Ets do
+  alias Pathfinder.Store.Ets
 
   defstruct [:games]
 
   def new(games_table) do
-    :ets.new(games_table, [:named_table, read_concurrency: true])
-    %EtsStore{games: games_table}
+    :ets.new(games_table, [:set, :named_table])
+    %Ets{games: games_table}
   end
 
   defimpl Pathfinder.Store do
     def get(%{games: games}, id) do
       case :ets.lookup(games, id) do
-        [game] -> game
+        [{_, game}] -> game
         [] -> nil
       end
     end
 
-    def set(store, id, game) do
-      raise "Not implemented"
+    def set(%{games: games} = store, id, game) do
+      :ets.insert(games, {id, game})
+      store
     end
 
-    def delete(store, id) do
-      raise "Not implemented"
+    def delete(%{games: games} = store, id) do
+      :ets.delete(games, id)
+      store
     end
   end
 end
