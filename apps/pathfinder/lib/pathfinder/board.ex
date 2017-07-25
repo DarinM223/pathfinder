@@ -56,7 +56,7 @@ defmodule Pathfinder.Board do
   end
 
   @doc """
-  Prints a board to the console.
+  Returns the console printable version of the board as an IO list.
 
   ## Example
 

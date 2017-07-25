@@ -40,7 +40,7 @@ defmodule Pathfinder.GameTest do
     p2_changes = [{:place_goal, [{2, 4}]}]
 
     {:ok, game} = Game.build(Game.new(), 0, p1_changes)
-    {:ok, game} = Game.build(game, 1, p2_changes)
+    {:turn, _, game} = Game.build(game, 1, p2_changes)
 
     {:ok, p1_board} = Board.place_goal(Board.new(), {3, 4})
     {:ok, p2_board} = Board.place_goal(Board.new(), {2, 4})
@@ -54,10 +54,8 @@ defmodule Pathfinder.GameTest do
     changes = [{:place_goal, [{3, 4}]}]
 
     {:ok, game} = Game.build(Game.new(), 0, changes)
-    {:ok, game} = Game.build(game, 1, changes)
-
-    {:turn, player} = Game.state(game)
-    {:ok, game} = Game.turn(game, player, {:place_player, [1]})
+    {:turn, player, game} = Game.build(game, 1, changes)
+    {:turn, _, game} = Game.turn(game, player, {:place_player, [1]})
 
     enemy = if player == 0, do: 1, else: 0
     player_enemy_board = get_in(game, [:players, player, :enemy_board])
@@ -71,10 +69,8 @@ defmodule Pathfinder.GameTest do
     changes = [{:place_goal, [{3, 4}]}, {:set_wall, [1, true]}]
 
     {:ok, game} = Game.build(Game.new(), 0, changes)
-    {:ok, game} = Game.build(game, 1, changes)
-
-    {:turn, player} = Game.state(game)
-    {:error, game} = Game.turn(game, player, {:place_player, [1]})
+    {:turn, player, game} = Game.build(game, 1, changes)
+    {:error, _, game} = Game.turn(game, player, {:place_player, [1]})
 
     player_enemy_board = get_in(game, [:players, player, :enemy_board])
 
@@ -85,17 +81,14 @@ defmodule Pathfinder.GameTest do
     changes = [{:place_goal, [{3, 4}]}, {:set_wall, [1, true]}]
 
     {:ok, game} = Game.build(Game.new(), 0, changes)
-    {:ok, game} = Game.build(game, 1, changes)
+    {:turn, player, game} = Game.build(game, 1, changes)
 
-    {:turn, player} = Game.state(game)
-    enemy = if player == 0, do: 1, else: 0
+    {:turn, player, game} = Game.turn(game, player, {:place_player, [2]})
+    {:turn, player, game} = Game.turn(game, player, {:place_player, [2]})
+    {:turn, player, game} = Game.turn(game, player, {:move_player, [1]})
+    {:turn, player, game} = Game.turn(game, player, {:move_player, [1]})
 
-    {:ok, game} = Game.turn(game, player, {:place_player, [2]})
-    {:ok, game} = Game.turn(game, enemy, {:place_player, [2]})
-    {:ok, game} = Game.turn(game, player, {:move_player, [1]})
-    {:ok, game} = Game.turn(game, enemy, {:move_player, [1]})
-
-    {:error, game} = Game.turn(game, player, {:remove_player, []})
+    {:error, _, game} = Game.turn(game, player, {:remove_player, []})
     player_enemy_board = get_in(game, [:players, player, :enemy_board])
 
     assert {_, _, _, _, true} = Map.get(player_enemy_board, Board.index(1, 1))
@@ -105,17 +98,14 @@ defmodule Pathfinder.GameTest do
     changes = [{:place_goal, [{3, 4}]}, {:set_wall, [{2, 2}, {3, 2}, true]}]
 
     {:ok, game} = Game.build(Game.new(), 0, changes)
-    {:ok, game} = Game.build(game, 1, changes)
+    {:turn, player, game} = Game.build(game, 1, changes)
 
-    {:turn, player} = Game.state(game)
-    enemy = if player == 0, do: 1, else: 0
+    {:turn, player, game} = Game.turn(game, player, {:place_player, [2]})
+    {:turn, player, game} = Game.turn(game, player, {:place_player, [2]})
+    {:turn, player, game} = Game.turn(game, player, {:move_player, [2]})
+    {:turn, player, game} = Game.turn(game, player, {:move_player, [2]})
 
-    {:ok, game} = Game.turn(game, player, {:place_player, [2]})
-    {:ok, game} = Game.turn(game, enemy, {:place_player, [2]})
-    {:ok, game} = Game.turn(game, player, {:move_player, [2]})
-    {:ok, game} = Game.turn(game, enemy, {:move_player, [2]})
-
-    {:error, game} = Game.turn(game, player, {:move_player, [3]})
+    {:error, _, game} = Game.turn(game, player, {:move_player, [3]})
     player_enemy_board = get_in(game, [:players, player, :enemy_board])
 
     assert {_, _, _, true, _} = Map.get(player_enemy_board, Board.index(2, 2))
@@ -125,13 +115,10 @@ defmodule Pathfinder.GameTest do
     changes = [{:place_goal, [{2, 2}]}]
 
     {:ok, game} = Game.build(Game.new(), 0, changes)
-    {:ok, game} = Game.build(game, 1, changes)
+    {:turn, player, game} = Game.build(game, 1, changes)
 
-    {:turn, player} = Game.state(game)
-    enemy = if player == 0, do: 1, else: 0
-
-    {:ok, game} = Game.turn(game, player, {:place_player, [2]})
-    {:ok, game} = Game.turn(game, enemy, {:place_player, [2]})
+    {:turn, player, game} = Game.turn(game, player, {:place_player, [2]})
+    {:turn, player, game} = Game.turn(game, player, {:place_player, [2]})
 
     assert {:win, ^player, _} = Game.turn(game, player, {:move_player, [2]})
   end

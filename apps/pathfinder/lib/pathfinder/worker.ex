@@ -7,17 +7,9 @@ defmodule Pathfinder.Worker do
 
   alias Pathfinder.Game
 
-  def start_link(registry, store, id, opts \\ []) do
+  def start_link({registry, id}, store, opts \\ []) do
     name = {:via, Registry, {registry, id}}
     GenServer.start_link(__MODULE__, {store, id}, [{:name, name} | opts])
-  end
-
-  def state(registry, id) do
-    GenServer.call(name(registry, id), :state)
-  end
-
-  def name(registry, id) do
-    {:via, Registry, {registry, id}}
   end
 
   def init({store, id}) do
@@ -28,18 +20,27 @@ defmodule Pathfinder.Worker do
     end
   end
 
-  # Debugging call to retrieve the state
   def handle_call(:state, _from, game), do: {:reply, game, game}
 
   def handle_call({:build, player, changes}, _from, game) do
-    with {:ok, game} <- Game.build(game, player, changes) do
-      {:reply, :ok, game}
-    else
-      _ -> {:reply, :error, game}
+    case Game.build(game, player, changes) do
+      {:turn, player, game} ->
+        {:reply, {:turn, player}, game}
+      {:ok, game} ->
+        {:reply, :ok, game}
+      _ ->
+        {:reply, :error, game}
     end
   end
 
   def handle_call({:turn, player, action}, _from, game) do
-    {:reply, :ok, Game.turn(game, player, action)}
+    case Game.turn(game, player, action) do
+      {:win, player, game} ->
+        {:reply, {:win, player}, game}
+      {:turn, player, game} ->
+        {:reply, {:turn, player}, game}
+      {:error, player, game} ->
+        {:reply, {:error, player}, game}
+    end
   end
 end

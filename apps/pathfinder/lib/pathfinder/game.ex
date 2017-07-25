@@ -27,6 +27,16 @@ defmodule Pathfinder.Game do
   end
 
   @doc """
+  Returns the console printable version of the game as an IO list.
+  """
+  def to_io_list(game) do
+    ["Player 1:\n",
+     Player.to_io_list(get_in(game, [:players, 0])),
+     "Player 2:\n",
+     Player.to_io_list(get_in(game, [:players, 1]))]
+  end
+
+  @doc """
   Returns the current state of the game.
   """
   def state(%{state: state}), do: state
@@ -35,19 +45,22 @@ defmodule Pathfinder.Game do
   Handles a player's build request.
 
   Returns:
-  {:ok, game} if the changes result in a valid grid.
+  {:turn, player, game} if both players built their grids
+  {:ok, game} if not all players have build their grids
   :error if there is a problem with the changes (the grid is invalid).
   """
   def build(%{state: {:build, nil}} = game, player, changes) do
-    with {:ok, game} <- _build(game, player, changes),
-         do: {:ok, %{game | state: {:build, player}}}
+    with {:ok, game} <- _build(game, player, changes) do
+      {:ok, %{game | state: {:build, player}}}
+    end
   end
   def build(%{state: {:build, i}} = game, player, changes)
       when (i == 0 or i == 1) and i != player do
 
     next_player = Enum.random(0..1)
-    with {:ok, game} <- _build(game, player, changes),
-         do: {:ok, %{game | state: {:turn, next_player}}}
+    with {:ok, game} <- _build(game, player, changes) do
+      {:turn, next_player, %{game | state: {:turn, next_player}}}
+    end
   end
 
   defp _build(game, player, changes) do
@@ -79,8 +92,8 @@ defmodule Pathfinder.Game do
 
   Returns:
   {:win, player, game} if the player won from the action
-  {:ok, game} if the player successfully completed the action
-  {:error, game} if there was a problem completing the action
+  {:turn, player, game} for the next player's turn
+  {:error, player, game} if there was a problem completing the action
   """
   def turn(%{state: {:turn, i}} = game, player, {fun, args})
       when (i == 0 or i == 1) and
@@ -100,12 +113,12 @@ defmodule Pathfinder.Game do
       if Game.won?(game, enemy) do
         {:win, player, game}
       else
-        {:ok, game}
+        {:turn, enemy, game}
       end
     else
       _ ->
         game = handle_turn_error(fun, args, game, player)
-        {:error, game}
+        {:error, enemy, game}
     end
   end
 

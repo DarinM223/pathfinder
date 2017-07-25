@@ -8,8 +8,10 @@ defmodule Pathfinder.Supervisor do
   end
 
   def start_child(supervisor, store, id) do
-    with {:ok, _} <- Supervisor.start_child(supervisor, [@registry, store, id]),
-         do: {:ok, id}
+    game_id = {@registry, id}
+    with {:ok, _} <- Supervisor.start_child(supervisor, [game_id, store]) do
+      {:ok, game_id}
+    end
   end
 
   def init(:ok) do

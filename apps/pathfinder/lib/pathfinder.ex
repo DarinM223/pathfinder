@@ -25,4 +25,31 @@ defmodule Pathfinder do
   def add(store, id) do
     Pathfinder.Supervisor.start_child(Pathfinder.Supervisor, store, id)
   end
+
+  @doc """
+  Returns the game state in the worker.
+
+  Mostly used for debugging worker errors.
+  """
+  def state(id) do
+    GenServer.call(name(id), :state)
+  end
+
+  @doc """
+  Sends a player's grid building changes to the game.
+  """
+  def build(id, player, changes) do
+    GenServer.call(name(id), {:build, player, changes})
+  end
+
+  @doc """
+  Sends a player's turn to the game.
+  """
+  def turn(id, player, action) do
+    GenServer.call(name(id), {:turn, player, action})
+  end
+
+  defp name({_registry, _id} = id) do
+    {:via, Registry, id}
+  end
 end
