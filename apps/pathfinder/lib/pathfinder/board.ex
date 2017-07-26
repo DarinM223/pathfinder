@@ -56,7 +56,7 @@ defmodule Pathfinder.Board do
   end
 
   @doc """
-  Prints a board to the console.
+  Returns the console printable version of the board as an IO list.
 
   ## Example
 
@@ -316,6 +316,40 @@ defmodule Pathfinder.Board do
   end
 
   @doc """
+  Returns the player's location in the board.
+
+  ## Example:
+
+      iex> alias Pathfinder.Board
+      iex> {:ok, board} = Board.place_player(Board.new(), 1)
+      iex> Board.player_location(board)
+      {1, 1}
+
+      iex> board = Pathfinder.Board.new()
+      iex> Pathfinder.Board.player_location(board)
+      nil
+
+  """
+  def player_location(board), do: Map.get(board, :player)
+
+  @doc """
+  Returns the goal's location in the board.
+
+  ## Example:
+
+      iex> alias Pathfinder.Board
+      iex> {:ok, board} = Board.place_goal(Board.new(), {3, 4})
+      iex> Board.goal_location(board)
+      {3, 4}
+
+      iex> board = Pathfinder.Board.new()
+      iex> Pathfinder.Board.goal_location(board)
+      nil
+
+  """
+  def goal_location(board), do: Map.get(board, :goal)
+
+  @doc """
   Returns true if a goal exists and there exists a
   possible path to the goal.
   """
@@ -334,7 +368,7 @@ defmodule Pathfinder.Board do
     case value do
       :empty ->
         false
-      {:value, {row, col} = pos} ->
+      {:value, {_, col} = pos} ->
         case Map.get(board, index(pos)) do
           {_, _, _, _, left} when col == 1 and not left ->
             true
@@ -342,14 +376,14 @@ defmodule Pathfinder.Board do
             false
           cell ->
             {queue, discovered} =
-              _add_next_positions(board, pos, cell, queue, discovered)
+              _add_next_positions(pos, cell, queue, discovered)
 
             _validate_goal(board, queue, discovered)
         end
     end
   end
 
-  defp _add_next_positions(board, pos, cell, queue, discovered) do
+  defp _add_next_positions(pos, cell, queue, discovered) do
     filter_pos = fn
       {:ok, pos} -> not Map.has_key?(discovered, index(pos))
       _ -> false
