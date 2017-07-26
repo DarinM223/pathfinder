@@ -7,9 +7,9 @@ defmodule Pathfinder.Supervisor do
     Supervisor.start_link(__MODULE__, :ok, opts)
   end
 
-  def start_child(supervisor, store, id) do
+  def start_child(supervisor, id, stash) do
     game_id = {@registry, id}
-    with {:ok, _} <- Supervisor.start_child(supervisor, [game_id, store]) do
+    with {:ok, _} <- Supervisor.start_child(supervisor, [game_id, stash]) do
       {:ok, game_id}
     end
   end
@@ -19,6 +19,6 @@ defmodule Pathfinder.Supervisor do
       worker(Pathfinder.Worker, [])
     ]
 
-    supervise(children, strategy: :simple_one_for_one)
+    supervise(children, strategy: :simple_one_for_one, max_restarts: 100)
   end
 end

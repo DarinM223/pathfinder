@@ -30,10 +30,9 @@ defmodule Pathfinder.Game do
   Returns the console printable version of the game as an IO list.
   """
   def to_io_list(game) do
-    ["Player 1:\n",
-     Player.to_io_list(get_in(game, [:players, 0])),
-     "Player 2:\n",
-     Player.to_io_list(get_in(game, [:players, 1]))]
+    ["Current state: ", inspect(game.state), "\n",
+     "Player 1:\n", Player.to_io_list(get_in(game, [:players, 0])),
+     "Player 2:\n", Player.to_io_list(get_in(game, [:players, 1]))]
   end
 
   @doc """

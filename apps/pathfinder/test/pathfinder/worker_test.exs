@@ -1,29 +1,28 @@
 defmodule Pathfinder.WorkerTest do
   use ExUnit.Case
 
-  alias Pathfinder.Store
-  alias Pathfinder.Store.Ets
-  alias Pathfinder.Worker
+  alias Pathfinder.Stash
 
   setup context do
     registry = :"#{context.test}_registry"
     {:ok, _} = Registry.start_link(:unique, registry)
-    store = Ets.new(:"#{context.test}_table")
+    {:ok, stash} = Stash.start_link(name: :"#{context.test}_stash")
+    worker = "#{context.test}_worker"
 
-    {:ok, store: store, registry: registry}
+    {:ok, stash: stash, registry: registry, worker: worker}
   end
 
-  test "loads game state if in ets", %{store: store, registry: registry} do
-    Store.set(store, "blah", :game)
+  test "loads game state if in stash", %{stash: stash, registry: registry, worker: worker} do
+    id = {registry, worker}
+    Stash.set(stash, worker, :game)
 
-    id = {registry, "blah"}
-    {:ok, _} = Pathfinder.Worker.start_link(id, store)
+    {:ok, _} = Pathfinder.Worker.start_link(id, stash)
     assert Pathfinder.state(id) == :game
   end
 
-  test "worker accepts build and turn messages", %{store: store, registry: registry} do
-    id = {registry, "blah"}
-    {:ok, _} = Pathfinder.Worker.start_link(id, store)
+  test "worker accepts build and turn messages", %{stash: stash, registry: registry, worker: worker} do
+    id = {registry, worker}
+    {:ok, _} = Pathfinder.Worker.start_link(id, stash)
 
     changes = [{:place_goal, [{2, 2}]},
                {:set_wall, [{1, 1}, {2, 1}, true]}]
@@ -32,6 +31,7 @@ defmodule Pathfinder.WorkerTest do
 
     {:turn, player} = Pathfinder.turn(id, player, {:place_player, [2]})
     {:turn, player} = Pathfinder.turn(id, player, {:place_player, [2]})
+
     {:error, player} = Pathfinder.turn(id, player, {:move_player, [1]})
     {:error, player} = Pathfinder.turn(id, player, {:move_player, [1]})
 
