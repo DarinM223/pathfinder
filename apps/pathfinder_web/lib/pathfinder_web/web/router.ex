@@ -22,6 +22,12 @@ defmodule PathfinderWeb.Web.Router do
     resources "/sessions", SessionController, only: [:new, :create, :delete]
   end
 
+  scope "/manage", PathfinderWeb.Web do
+    pipe_through [:browser, :authenticate_user]
+
+    resources "/games", GameController
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", PathfinderWeb.Web do
   #   pipe_through :api
