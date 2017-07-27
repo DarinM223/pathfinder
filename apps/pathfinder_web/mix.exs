@@ -21,7 +21,7 @@ defmodule PathfinderWeb.Mixfile do
   # Type `mix help compile.app` for more information.
   def application do
     [mod: {PathfinderWeb.Application, []},
-     extra_applications: [:logger, :runtime_tools]]
+     extra_applications: [:logger, :runtime_tools, :comeonin]]
   end
 
   # Specifies which paths to compile per environment.
@@ -39,7 +39,9 @@ defmodule PathfinderWeb.Mixfile do
      {:phoenix_html, "~> 2.6"},
      {:phoenix_live_reload, "~> 1.0", only: :dev},
      {:gettext, "~> 0.11"},
-     {:cowboy, "~> 1.0"}]
+     {:cowboy, "~> 1.0"},
+     {:comeonin, "~> 3.2"},
+     {:pathfinder, in_umbrella: true}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.

@@ -22,6 +22,8 @@ defmodule PathfinderWeb.Web do
       import Plug.Conn
       import PathfinderWeb.Web.Router.Helpers
       import PathfinderWeb.Web.Gettext
+
+      import PathfinderWeb.Web.Auth, only: [authenticate_user: 2]
     end
   end
 
