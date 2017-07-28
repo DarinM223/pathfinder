@@ -19,3 +19,20 @@ import "phoenix_html"
 // paths "./socket" or full ones "web/static/js/socket".
 
 // import socket from "./socket"
+
+import React, { PropTypes } from 'react'
+import ReactDOM from 'react-dom'
+
+function HelloWorld (props) {
+  return (
+    <h1>Hello!</h1>
+  )
+}
+
+HelloWorld.propTypes = {
+}
+
+ReactDOM.render(
+  <HelloWorld/>,
+  document.getElementById('game')
+)
