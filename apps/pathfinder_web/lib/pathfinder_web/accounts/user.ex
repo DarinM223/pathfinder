@@ -10,6 +10,8 @@ defmodule PathfinderWeb.Accounts.User do
     field :password, :string, virtual: true
     field :password_confirm, :string, virtual: true
     field :password_hash, :string
+    has_many :games, PathfinderWeb.Data.Game
+    has_many :changes, PathfinderWeb.Data.Change
 
     timestamps()
   end
