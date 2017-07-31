@@ -27,6 +27,17 @@ import {observer} from 'mobx-react';
 import BoardStore, {Cell} from './board/data.js';
 import {BoardView} from './board/view.js';
 
+BoardStore.placePlayer(1);
+
+setTimeout(() => {
+  BoardStore.movePlayer(2);
+  BoardStore.toggleRowWall(2);
+  BoardStore.toggleWall(3, 4, 3);
+  BoardStore.placeGoal(3, 4);
+}, 1000);
+
+BoardStore.state = { type: 'PLACE_WALL', firstCell: null };
+
 ReactDOM.render(
   <BoardView board={BoardStore} />,
   document.getElementById('game')

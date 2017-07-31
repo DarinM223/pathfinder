@@ -1,22 +1,33 @@
 import React, { Component, PropTypes } from 'react';
 import {observer} from 'mobx-react';
-import {TOP, RIGHT, BOTTOM, LEFT} from './data.js';
+import {
+  TOP,
+  RIGHT,
+  BOTTOM,
+  LEFT,
+  PLAYER,
+  GOAL,
+  SELECTED_HIGHLIGHT,
+  HINT_HIGHLIGHT
+} from './data.js';
 
 const styles = {
   square: {
     width: '50px',
     height: '50px',
     float: 'left',
-    backgroundColor: '#D3D3D3',
     borderWidth: '5px',
     borderStyle: 'solid',
-    borderRadius: '25px',
+    textAlign: 'center',
+    verticalAlign: 'middle',
+    lineHeight: '40px'
   }
 };
 
-function addWalls(style, walls) {
+function addWalls(style, walls, backgroundColor) {
   return {
     ...style,
+    backgroundColor: backgroundColor,
     borderTopColor: walls[TOP] ? 'black' : 'white',
     borderRightColor: walls[RIGHT] ? 'black' : 'white',
     borderBottomColor: walls[BOTTOM] ? 'black' : 'white',
@@ -27,11 +38,36 @@ function addWalls(style, walls) {
 @observer
 export class CellView extends Component {
   render() {
+    let cellText = null;
+    switch (this.props.cell.data) {
+      case PLAYER:
+        cellText = 'P';
+        break;
+      case GOAL:
+        cellText = 'G';
+        break;
+    }
+
+    let backgroundColor = null;
+    switch (this.props.cell.highlight) {
+      case SELECTED_HIGHLIGHT:
+        backgroundColor = '#FFA500';
+        break;
+      case HINT_HIGHLIGHT:
+        backgroundColor = '#7CFC00';
+        break;
+      default:
+        backgroundColor = '#D3D3D3';
+        break;
+    }
+
     return (
       <div
         className="col"
-        style={addWalls(styles.square, this.props.cell.walls)}
-      />
+        style={addWalls(styles.square, this.props.cell.walls, backgroundColor)}
+        onClick={e => this.props.onClick(e)}>
+        <b>{cellText}</b>
+      </div>
     );
   }
 }
@@ -45,7 +81,10 @@ export class BoardView extends Component {
     for (let row = 0; row < 6; row++) {
       const cellViews = [];
       for (let col = 0; col < 6; col++) {
-        cellViews.push(<CellView cell={cells[row][col]} />);
+        cellViews.push(<CellView
+          cell={cells[row][col]}
+          onClick={e => this.props.board.onCellClick(row, col)}
+        />);
       }
 
       rows.push(<div className="container">{cellViews}</div>);
