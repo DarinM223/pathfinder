@@ -58,6 +58,27 @@ export class Board {
    */
   @observable state = { type: NO_STATE };
 
+  @action transition(state) {
+    // Clear highlights from the grid.
+    this.clearGrid();
+
+    switch (state) {
+      case PLACE_WALL:
+        this.state = { type: state, firstCell: null };
+        return;
+      case MOVE_PLAYER:
+        const [row, col] = this.player;
+        this.toggleHighlight(row, col);
+        break;
+      case PLACE_PLAYER:
+        for (let row = 0; row < 6; row++) {
+          this.cells[row][0].highlight = HINT_HIGHLIGHT;
+        }
+        break;
+    }
+    this.state = { type: state };
+  }
+
   @action onCellClick(row, col) {
     switch (this.state.type) {
       case PLACE_WALL:
@@ -89,10 +110,23 @@ export class Board {
         this.resetPlaceWall();
         break;
       case PLACE_GOAL:
+        if (this.goal !== null) {
+          const [goalRow, goalCol] = this.goal;
+          this.cells[goalRow][goalCol].data = null;
+        }
+
+        this.cells[row][col].data = GOAL;
+        this.goal = [row, col];
         break;
       case MOVE_PLAYER:
+        // TODO(DarinM223): check if cell is adjacent to player
+        // TODO(DarinM223): send websocket request
+        // TODO(DarinM223): if ok, move player, otherwise place wall
         break;
       case PLACE_PLAYER:
+        // TODO(DarinM223): check if cell is on first column
+        // TODO(DarinM223): send websocket request
+        // TODO(DarinM223): if ok, place player, otherwise place wall
         break;
     }
   }
@@ -101,6 +135,16 @@ export class Board {
     const [row, col] = this.state.firstCell;
     this.toggleHighlight(row, col);
     this.state.firstCell = null;
+  }
+
+  @action clearGrid() {
+    for (let row = 0; row < 6; row++) {
+      for (let col = 0; col < 6; col++) {
+        if (this.cells[row][col].highlight) {
+          this.cells[row][col].highlight = null;
+        }
+      }
+    }
   }
 
   @action toggleHighlight(row, col) {

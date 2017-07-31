@@ -22,23 +22,65 @@ import "phoenix_html"
 
 import React, { Component, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
-import {observable, computed} from 'mobx';
 import {observer} from 'mobx-react';
-import BoardStore, {Cell} from './board/data.js';
+import BoardStore, {
+  Cell,
+  MOVE_PLAYER,
+  PLACE_WALL,
+  PLACE_PLAYER,
+  PLACE_GOAL
+} from './board/data.js';
 import {BoardView} from './board/view.js';
 
 BoardStore.placePlayer(1);
+BoardStore.transition(MOVE_PLAYER);
 
 setTimeout(() => {
-  BoardStore.movePlayer(2);
   BoardStore.toggleRowWall(2);
   BoardStore.toggleWall(3, 4, 3);
   BoardStore.placeGoal(3, 4);
+  BoardStore.transition(PLACE_PLAYER);
 }, 1000);
 
-BoardStore.state = { type: 'PLACE_WALL', firstCell: null };
+setTimeout(() => {
+  BoardStore.transition(PLACE_GOAL);
+}, 2000);
+
+@observer
+class GameView extends Component {
+  render() {
+    const store = this.props.store;
+    let buttonControl = null;
+    let stateText = '';
+    switch (store.state.type) {
+      case PLACE_GOAL:
+        stateText = 'Currently placing goal';
+        buttonControl = (
+          <button onClick={e => store.transition(PLACE_WALL)}>
+            Place walls
+          </button>
+        );
+        break;
+      case PLACE_WALL:
+        stateText = 'Currently placing walls';
+        buttonControl = (
+          <button onClick={e => store.transition(PLACE_GOAL)}>
+            Place goal
+          </button>
+        );
+        break;
+    }
+    return (
+      <div>
+        <h2>{stateText}</h2>
+        {buttonControl}
+        <BoardView board={store} />
+      </div>
+    );
+  }
+}
 
 ReactDOM.render(
-  <BoardView board={BoardStore} />,
+  <GameView store={BoardStore} />,
   document.getElementById('game')
 );
