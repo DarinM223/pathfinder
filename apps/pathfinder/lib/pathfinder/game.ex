@@ -20,19 +20,20 @@ defmodule Pathfinder.Game do
   @doc """
   Returns a new game state.
   """
-  def new do
+  def new(player1, player2) do
     %{state: {:build, nil},
-      players: %{0 => Player.new(),
-                 1 => Player.new()}}
+      players: %{player1 => Player.new(),
+                 player2 => Player.new()}}
   end
 
   @doc """
   Returns the console printable version of the game as an IO list.
   """
   def to_io_list(game) do
-    ["Current state: ", inspect(game.state), "\n",
-     "Player 1:\n", Player.to_io_list(get_in(game, [:players, 0])),
-     "Player 2:\n", Player.to_io_list(get_in(game, [:players, 1]))]
+    players = Enum.map(game.players, fn {id, player} ->
+      ["Player ", id, ":\n", Player.to_io_list(player)]
+    end)
+    ["Current state: ", inspect(game.state), "\n", players]
   end
 
   @doc """
@@ -53,10 +54,12 @@ defmodule Pathfinder.Game do
       {:ok, %{game | state: {:build, player}}}
     end
   end
-  def build(%{state: {:build, i}} = game, player, changes)
-      when (i == 0 or i == 1) and i != player do
+  def build(%{state: {:build, i}} = game, player, changes) when i != player do
+    next_player =
+      game.players
+      |> Enum.random()
+      |> elem(0)
 
-    next_player = Enum.random(0..1)
     with {:ok, game} <- _build(game, player, changes) do
       {:turn, next_player, %{game | state: {:turn, next_player}}}
     end
@@ -95,11 +98,13 @@ defmodule Pathfinder.Game do
   {:error, player, game} if there was a problem completing the action
   """
   def turn(%{state: {:turn, i}} = game, player, {fun, args})
-      when (i == 0 or i == 1) and
-           i == player and
-           fun in @allowed_turn_actions do
+      when i == player and fun in @allowed_turn_actions do
 
-    enemy = if player == 0, do: 1, else: 0
+    [enemy] =
+      game.players
+      |> Stream.filter(&(elem(&1, 0) != player))
+      |> Stream.map(&(elem(&1, 0)))
+      |> Enum.take(1)
     game = %{game | state: {:turn, enemy}}
     enemy_board = get_in(game, [:players, enemy, :board])
     player_enemy_board = get_in(game, [:players, player, :enemy_board])

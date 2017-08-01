@@ -22,7 +22,7 @@ import "phoenix_html"
 
 import React, { Component, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
-import {observer} from 'mobx-react';
+import { observer } from 'mobx-react';
 import BoardStore, {
   Cell,
   MOVE_PLAYER,

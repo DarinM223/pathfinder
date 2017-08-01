@@ -58,6 +58,10 @@ export class Board {
    */
   @observable state = { type: NO_STATE };
 
+  constructor(socket) {
+    this.socket = socket;
+  }
+
   @action transition(state) {
     // Clear highlights from the grid.
     this.clearGrid();

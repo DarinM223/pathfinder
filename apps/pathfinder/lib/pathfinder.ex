@@ -24,8 +24,16 @@ defmodule Pathfinder do
   @doc """
   Load a game worker with the given id.
   """
-  def add(id, stash \\ Pathfinder.Stash) do
-    Pathfinder.Supervisor.start_child(Pathfinder.Supervisor, id, stash)
+  def add(id, player1, player2, stash \\ Pathfinder.Stash) do
+    Pathfinder.Supervisor.start_child(Pathfinder.Supervisor,
+                                      id, stash, player1, player2)
+  end
+
+  @doc """
+  Returns the full game id if the game is already running, otherwise returns nil.
+  """
+  def full_game_id(id, stash \\ Pathfinder.Stash) do
+    if stash.get(id), do: {@registry, id}, else: nil
   end
 
   @doc """
