@@ -125,12 +125,10 @@ export class Board {
       case MOVE_PLAYER:
         // TODO(DarinM223): check if cell is adjacent to player
         // TODO(DarinM223): send websocket request
-        // TODO(DarinM223): if ok, move player, otherwise place wall
         break;
       case PLACE_PLAYER:
         // TODO(DarinM223): check if cell is on first column
         // TODO(DarinM223): send websocket request
-        // TODO(DarinM223): if ok, place player, otherwise place wall
         break;
     }
   }

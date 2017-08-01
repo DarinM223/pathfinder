@@ -1,1 +1,4 @@
+<%= content_tag :div, id: "game", data: [id: @game.id] do %>
+<% end %>
+
 <div id="game"></div>

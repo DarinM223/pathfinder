@@ -5,16 +5,18 @@ defmodule PathfinderWeb.Web.GameChannel do
   alias PathfinderWeb.Data
 
   def join("games:" <> game_id, params, socket) do
+    game_id = game_id |> Integer.parse() |> elem(0)
     if id = Pathfinder.full_game_id(game_id) do
       game = Pathfinder.state(id)
       player = get_in(game, [:players, socket.assigns.user_id])
-      {:ok, player, assign(socket, :game_id, id)}
+      # TODO(DarinM223): convert player into json
+      {:ok, %{player: player}, assign(socket, :game_id, id)}
     else
       user = Accounts.get_user!(socket.assigns.user_id)
       game = Data.get_user_game!(user, game_id)
       other_player_id = game.other_user_id
       {:ok, id} = Pathfinder.add(game_id, socket.assigns.user_id, other_player_id)
-      {:ok, :ok, assign(socket, :game_id, id)}
+      {:ok, %{player: nil}, assign(socket, :game_id, id)}
     end
   end
 

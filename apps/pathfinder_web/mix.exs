@@ -21,7 +21,7 @@ defmodule PathfinderWeb.Mixfile do
   # Type `mix help compile.app` for more information.
   def application do
     [mod: {PathfinderWeb.Application, []},
-     extra_applications: [:logger, :runtime_tools, :comeonin]]
+     extra_applications: [:logger, :runtime_tools, :comeonin, :pathfinder]]
   end
 
   # Specifies which paths to compile per environment.

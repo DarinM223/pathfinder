@@ -33,7 +33,7 @@ defmodule Pathfinder do
   Returns the full game id if the game is already running, otherwise returns nil.
   """
   def full_game_id(id, stash \\ Pathfinder.Stash) do
-    if stash.get(id), do: {@registry, id}, else: nil
+    if stash.get(stash, id), do: {@registry, id}, else: nil
   end
 
   @doc """

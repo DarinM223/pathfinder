@@ -3,7 +3,7 @@
 
 // To use Phoenix channels, the first step is to import Socket
 // and connect at the socket path in "lib/web/endpoint.ex":
-import {Socket} from "phoenix";
+import {Socket} from 'phoenix';
 
 const socket = new Socket('/socket', {
   params: {token: window.userToken},
