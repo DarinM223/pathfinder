@@ -62,6 +62,30 @@ export class Board {
     this.socket = socket;
   }
 
+  @action loadFromBackend(board) {
+    this.player = board.player;
+    this.goal = board.goal;
+
+    for (const boardCell of board.cells) {
+      const cell = new Cell();
+      cell.data = boardCell.data;
+      cell.walls = [
+        boardCell.top,
+        boardCell.right,
+        boardCell.bottom,
+        boardCell.left
+      ];
+      this.cells[boardCell.row][boardCell.col] = cell;
+    }
+
+    if (this.player !== null) {
+      this.cells[this.player[0]][this.player[1]].data = PLAYER;
+    }
+    if (this.goal !== null) {
+      this.cells[this.goal[0]][this.goal[1]].data = GOAL;
+    }
+  }
+
   @action transition(state) {
     // Clear highlights from the grid.
     this.clearGrid();

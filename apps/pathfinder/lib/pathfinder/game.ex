@@ -31,7 +31,7 @@ defmodule Pathfinder.Game do
   """
   def to_io_list(game) do
     players = Enum.map(game.players, fn {id, player} ->
-      ["Player ", id, ":\n", Player.to_io_list(player)]
+      ["Player ", inspect(id), ":\n", Player.to_io_list(player)]
     end)
     ["Current state: ", inspect(game.state), "\n", players]
   end

@@ -34,10 +34,11 @@ export class Game {
     console.log('Games channel: ', gamesChannel);
 
     gamesChannel.join()
-      .receive('ok', ({ player }) => {
+      .receive('ok', (player) => {
         console.log('Join succeeded with player: ', player);
         if (player !== null) {
-          // TODO(DarinM223): setup board
+          this.playerBoard.loadFromBackend(player.board);
+          this.enemyBoard.loadFromBackend(player.enemy_board);
         }
         this.playerBoard.transition(PLACE_WALL);
       })
