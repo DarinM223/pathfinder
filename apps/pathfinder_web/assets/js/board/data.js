@@ -58,10 +58,6 @@ export class Board {
    */
   @observable state = { type: NO_STATE };
 
-  constructor(socket) {
-    this.socket = socket;
-  }
-
   @action loadFromBackend(board) {
     this.player = board.player;
     this.goal = board.goal;
@@ -107,55 +103,80 @@ export class Board {
     this.state = { type: state };
   }
 
-  @action onCellClick(row, col) {
-    switch (this.state.type) {
-      case PLACE_WALL:
-        if (this.state.firstCell === null) {
-          this.toggleHighlight(row, col);
-          this.state.firstCell = [row, col];
-          break;
-        }
-
-        // If the cell is clicked twice if the cell
-        // is on the first column, set the row wall.
-        if (this.state.firstCell[0] === row &&
-            this.state.firstCell[1] === col &&
-            col === 0) {
-          this.toggleRowWall(row);
-          this.resetPlaceWall();
-          break;
-        }
-
-        // Otherwise set the wall between the two cells or
-        // reset if the cells aren't adjacent to each other.
-        const direction = directionBetweenCells(this.state.firstCell, [row, col]);
-        if (direction === null) {
-          this.resetPlaceWall();
-          break;
-        }
-
-        this.toggleWall(this.state.firstCell[0], this.state.firstCell[1], direction);
-        this.resetPlaceWall();
-        break;
-      case PLACE_GOAL:
-        if (this.goal !== null) {
-          const [goalRow, goalCol] = this.goal;
-          this.cells[goalRow][goalCol].data = null;
-        }
-
-        this.cells[row][col].data = GOAL;
-        this.goal = [row, col];
-        break;
-      case MOVE_PLAYER:
-        // TODO(DarinM223): check if cell is adjacent to player
-        // TODO(DarinM223): send websocket request
-        break;
-      case PLACE_PLAYER:
-        // TODO(DarinM223): check if cell is on first column
-        // TODO(DarinM223): send websocket request
-        break;
+  @action placeWall(row, col) {
+    if (this.state.firstCell === null) {
+      this.toggleHighlight(row, col);
+      this.state.firstCell = [row, col];
+      return;
     }
+
+    // If the cell is clicked twice if the cell
+    // is on the first column, set the row wall.
+    if (this.state.firstCell[0] === row &&
+        this.state.firstCell[1] === col &&
+        col === 0) {
+      this.toggleRowWall(row);
+      this.resetPlaceWall();
+      return;
+    }
+
+    // Otherwise set the wall between the two cells or
+    // reset if the cells aren't adjacent to each other.
+    const direction = directionBetweenCells(this.state.firstCell, [row, col]);
+    if (direction === null) {
+      this.resetPlaceWall();
+      return;
+    }
+
+    this.toggleWall(this.state.firstCell[0], this.state.firstCell[1], direction);
+    this.resetPlaceWall();
   }
+
+  @action placeGoal(row, col) {
+    if (this.goal !== null) {
+      const [goalRow, goalCol] = this.goal;
+      this.cells[goalRow][goalCol].data = null;
+    }
+
+    this.cells[row][col].data = GOAL;
+    this.goal = [row, col];
+  }
+
+  //@action onCellClick(row, col) {
+  //  let direction;
+
+  //  switch (this.state.type) {
+  //    case MOVE_PLAYER:
+  //      direction = directionBetweenCells([row, col], this.player);
+  //      if (direction !== null) {
+  //        const payload = {
+  //          action: {
+  //            name: 'move_player',
+  //            params: [direction + 1],
+  //          }
+  //        };
+  //        socket
+  //          .push('turn', payload)
+  //          .receive('ok', () => console.log('Move player returned ok'))
+  //          .receive('error', () => console.log('Move player returned error'));
+  //      }
+  //      break;
+  //    case PLACE_PLAYER:
+  //      if (col === 0) {
+  //        const payload = {
+  //          action: {
+  //            name: 'place_player',
+  //            params: [[row + 1]],
+  //          }
+  //        };
+  //        socket
+  //          .push('turn', payload)
+  //          .receive('ok', () => console.log('Place player returned ok'))
+  //          .receive('error', () => console.log('Place player returned error'));
+  //      }
+  //      break;
+  //  }
+  //}
 
   @action resetPlaceWall() {
     const [row, col] = this.state.firstCell;
@@ -206,11 +227,6 @@ export class Board {
     this.player = [row, 0];
   }
 
-  @action placeGoal(row, col) {
-    this.cells[row][col].data = GOAL;
-    this.goal = [row, col];
-  }
-
   @action movePlayer(direction) {
     const [row, col] = this.player;
     this.cells[row][col].data = null;
@@ -222,11 +238,11 @@ export class Board {
   }
 }
 
-function isValidCell(row, col) {
+export function isValidCell(row, col) {
   return row >= 0 && row < 6 && col >= 0 && col < 6;
 }
 
-function next(row, col, direction) {
+export function next(row, col, direction) {
   switch (direction) {
     case TOP:
       return [row - 1, col];
@@ -239,7 +255,7 @@ function next(row, col, direction) {
   }
 }
 
-function directionBetweenCells([row1, col1], [row2, col2]) {
+export function directionBetweenCells([row1, col1], [row2, col2]) {
   for (let direction = TOP; direction <= LEFT; direction++) {
     const [nextRow, nextCol] = next(row1, col1, direction);
     if (nextRow === row2 && nextCol === col2) {
@@ -250,7 +266,7 @@ function directionBetweenCells([row1, col1], [row2, col2]) {
   return null;
 }
 
-function reverse(direction) {
+export function reverse(direction) {
   switch (direction) {
     case TOP:
       return BOTTOM;

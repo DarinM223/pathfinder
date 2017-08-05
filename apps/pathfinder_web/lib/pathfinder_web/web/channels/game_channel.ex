@@ -11,7 +11,9 @@ defmodule PathfinderWeb.Web.GameChannel do
       game = Pathfinder.state(id)
       player = get_in(game, [:players, socket.assigns.user_id])
       rendered_player = Phoenix.View.render(PlayerView, "player.json", %{
-        player: player
+        id: socket.assigns.user_id,
+        player: player,
+        state: game.state,
       })
       {:ok, rendered_player, assign(socket, :game_id, id)}
     else
