@@ -12,7 +12,7 @@ defmodule Pathfinder.GameTest do
                {:move_player, [2]},
                {:place_goal, [{3, 4}]},
                {:set_wall, [1, true]}]
-    {:ok, game} = Game.build(Game.new(), 1, changes)
+    {:ok, game} = Game.build(Game.new(0, 1), 1, changes)
 
     {:ok, board} = Board.place_goal(Board.new(), {3, 4})
     {:ok, board} = Board.set_wall(board, 1, true)
@@ -32,14 +32,14 @@ defmodule Pathfinder.GameTest do
                {:set_wall, [{3, 3}, {3, 4}, true]},
                {:set_wall, [{3, 5}, {3, 4}, true]},
                {:set_wall, [{4, 4}, {3, 4}, true]}]
-    assert Game.build(Game.new(), 1, changes) == :error
+    assert Game.build(Game.new(0, 1), 1, changes) == :error
   end
 
   test "build/3 should change state to :turn once both players are finished" do
     p1_changes = [{:place_goal, [{3, 4}]}]
     p2_changes = [{:place_goal, [{2, 4}]}]
 
-    {:ok, game} = Game.build(Game.new(), 0, p1_changes)
+    {:ok, game} = Game.build(Game.new(0, 1), 0, p1_changes)
     {:turn, _, game} = Game.build(game, 1, p2_changes)
 
     {:ok, p1_board} = Board.place_goal(Board.new(), {3, 4})
@@ -53,7 +53,7 @@ defmodule Pathfinder.GameTest do
   test "turn/3 should update the player's enemy board and the enemy's board" do
     changes = [{:place_goal, [{3, 4}]}]
 
-    {:ok, game} = Game.build(Game.new(), 0, changes)
+    {:ok, game} = Game.build(Game.new(0, 1), 0, changes)
     {:turn, player, game} = Game.build(game, 1, changes)
     {:turn, _, game} = Game.turn(game, player, {:place_player, [1]})
 
@@ -68,7 +68,7 @@ defmodule Pathfinder.GameTest do
   test "turn/3 should add a wall to player's enemy board if place_player fails" do
     changes = [{:place_goal, [{3, 4}]}, {:set_wall, [1, true]}]
 
-    {:ok, game} = Game.build(Game.new(), 0, changes)
+    {:ok, game} = Game.build(Game.new(0, 1), 0, changes)
     {:turn, player, game} = Game.build(game, 1, changes)
     {:error, _, game} = Game.turn(game, player, {:place_player, [1]})
 
@@ -80,7 +80,7 @@ defmodule Pathfinder.GameTest do
   test "turn/3 should add a wall to player's enemy board if remove_player fails" do
     changes = [{:place_goal, [{3, 4}]}, {:set_wall, [1, true]}]
 
-    {:ok, game} = Game.build(Game.new(), 0, changes)
+    {:ok, game} = Game.build(Game.new(0, 1), 0, changes)
     {:turn, player, game} = Game.build(game, 1, changes)
 
     {:turn, player, game} = Game.turn(game, player, {:place_player, [2]})
@@ -97,7 +97,7 @@ defmodule Pathfinder.GameTest do
   test "turn/3 should add a wall to player's enemy board if move_player fails" do
     changes = [{:place_goal, [{3, 4}]}, {:set_wall, [{2, 2}, {3, 2}, true]}]
 
-    {:ok, game} = Game.build(Game.new(), 0, changes)
+    {:ok, game} = Game.build(Game.new(0, 1), 0, changes)
     {:turn, player, game} = Game.build(game, 1, changes)
 
     {:turn, player, game} = Game.turn(game, player, {:place_player, [2]})
@@ -114,7 +114,7 @@ defmodule Pathfinder.GameTest do
   test "turn/3 should return a win if the player lands on the goal" do
     changes = [{:place_goal, [{2, 2}]}]
 
-    {:ok, game} = Game.build(Game.new(), 0, changes)
+    {:ok, game} = Game.build(Game.new(0, 1), 0, changes)
     {:turn, player, game} = Game.build(game, 1, changes)
 
     {:turn, player, game} = Game.turn(game, player, {:place_player, [2]})

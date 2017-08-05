@@ -8,7 +8,12 @@ import {
   PLAYER,
   GOAL,
   SELECTED_HIGHLIGHT,
-  HINT_HIGHLIGHT
+  HINT_HIGHLIGHT,
+  PLACE_WALL,
+  PLACE_PLAYER,
+  PLACE_GOAL,
+  MOVE_PLAYER,
+  directionBetweenCells
 } from './data.js';
 
 const styles = {
@@ -74,6 +79,28 @@ export class CellView extends Component {
 
 @observer
 export class BoardView extends Component {
+  onCellClick(row, col) {
+    switch (this.props.board.state.type) {
+      case PLACE_WALL:
+        this.props.board.placeWall(row, col);
+        break;
+      case PLACE_GOAL:
+        this.props.board.placeGoal(row, col);
+        break;
+      case MOVE_PLAYER:
+        const direction = directionBetweenCells(this.props.board.player, [row, col]);
+        if (direction !== null) {
+          this.props.movePlayer(direction);
+        }
+        break;
+      case PLACE_PLAYER:
+        if (col === 0) {
+          this.props.placePlayer(row);
+        }
+        break;
+    }
+  }
+
   render() {
     const cells = this.props.board.cells;
 
@@ -83,7 +110,7 @@ export class BoardView extends Component {
       for (let col = 0; col < 6; col++) {
         cellViews.push(<CellView
           cell={cells[row][col]}
-          onClick={e => this.props.board.onCellClick(row, col)}
+          onClick={e => this.onCellClick(row, col)}
         />);
       }
 

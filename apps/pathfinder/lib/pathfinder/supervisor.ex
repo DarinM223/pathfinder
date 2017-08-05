@@ -7,11 +7,13 @@ defmodule Pathfinder.Supervisor do
     Supervisor.start_link(__MODULE__, :ok, opts)
   end
 
-  def start_child(supervisor, id, stash) do
+  def start_child(supervisor, id, stash, player1, player2) do
     game_id = {@registry, id}
-    with {:ok, _} <- Supervisor.start_child(supervisor, [game_id, stash]) do
-      {:ok, game_id}
-    end
+    result = Supervisor.start_child(
+      supervisor,
+      [game_id, stash, {player1, player2}]
+    )
+    with {:ok, _} <- result, do: {:ok, game_id}
   end
 
   def init(:ok) do

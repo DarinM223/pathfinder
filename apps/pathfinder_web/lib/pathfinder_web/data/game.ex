@@ -6,6 +6,7 @@ defmodule PathfinderWeb.Data.Game do
 
   schema "games" do
     belongs_to :user, PathfinderWeb.Accounts.User
+    field :other_user_id, :integer
 
     timestamps()
   end

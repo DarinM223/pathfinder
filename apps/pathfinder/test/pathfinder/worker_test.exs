@@ -16,13 +16,13 @@ defmodule Pathfinder.WorkerTest do
     id = {registry, worker}
     Stash.set(stash, worker, :game)
 
-    {:ok, _} = Pathfinder.Worker.start_link(id, stash)
+    {:ok, _} = Pathfinder.Worker.start_link(id, stash, {0, -1})
     assert Pathfinder.state(id) == :game
   end
 
   test "worker accepts build and turn messages", %{stash: stash, registry: registry, worker: worker} do
     id = {registry, worker}
-    {:ok, _} = Pathfinder.Worker.start_link(id, stash)
+    {:ok, _} = Pathfinder.Worker.start_link(id, stash, {0, 1})
 
     changes = [{:place_goal, [{2, 2}]},
                {:set_wall, [{1, 1}, {2, 1}, true]}]

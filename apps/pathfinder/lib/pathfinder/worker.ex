@@ -10,16 +10,20 @@ defmodule Pathfinder.Worker do
   alias Pathfinder.Game
   alias Pathfinder.Stash
 
-  def start_link({registry, id}, stash, opts \\ []) do
+  def start_link({registry, id}, stash, {player1, player2}, opts \\ []) do
     name = {:via, Registry, {registry, id}}
-    GenServer.start_link(__MODULE__, {stash, id}, [{:name, name} | opts])
+    GenServer.start_link(__MODULE__, {stash, id, player1, player2},
+                         [{:name, name} | opts])
   end
 
-  def init({stash, id}) do
+  def init({stash, id, player1, player2}) do
     if game = Stash.get(stash, id) do
       {:ok, {game, {id, stash}}}
     else
-      {:ok, {Game.new(), {id, stash}}}
+      game = Game.new(player1, player2)
+      Stash.set(stash, id, game)
+
+      {:ok, {game, {id, stash}}}
     end
   end
 

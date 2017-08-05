@@ -8,13 +8,14 @@ defmodule PathfinderTest do
   end
 
   test "add/2 adds the child", context do
-    assert Pathfinder.add(context.test) == {:ok, {:game_registry, context.test}}
+    assert Pathfinder.add(context.test, 0, -1) ==
+      {:ok, {:game_registry, context.test}}
     assert is_map(Pathfinder.state({:game_registry, context.test}))
   end
 
   @tag :capture_log
   test "child saves to stash and restarts upon crash", context do
-    {:ok, id} = Pathfinder.add(context.test)
+    {:ok, id} = Pathfinder.add(context.test, 0, 1)
 
     changes = [{:place_goal, [{2, 2}]}]
     :ok = Pathfinder.build(id, 0, changes)

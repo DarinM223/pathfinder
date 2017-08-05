@@ -27,8 +27,8 @@ defmodule PathfinderWeb.Web.GameController do
   end
 
   def delete(conn, %{"id" => id}, user) do
-    video = Data.get_user_game!(user, id)
-    {:ok, _} = Data.delete_game(video)
+    game = Data.get_user_game!(user, id)
+    {:ok, _} = Data.delete_game(game)
 
     conn
     |> put_flash(:info, "Video deleted successfully")
