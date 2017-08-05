@@ -8,7 +8,8 @@ import {
   PLACE_GOAL,
   MOVE_PLAYER,
   PLACE_PLAYER,
-  NO_STATE
+  NO_STATE,
+  next
 } from './board/data.js';
 import { BoardView } from './board/view.js';
 
@@ -75,8 +76,6 @@ export class Game {
     }
   }
 
-  // TODO(DarinM223): send websocket messages for build(), movePlayer(), and placePlayer().
-
   @action build() {
     if (this.playerBoard.goal === null) {
       this.error = 'Goal must be set before validation';
@@ -98,6 +97,20 @@ export class Game {
 
   @action movePlayer(direction) {
     console.log('movePlayer');
+    const payload = {
+      action: {
+        name: 'move_player',
+        params: [direction + 1],
+      }
+    };
+
+    this.gamesChannel
+      .push('turn', payload)
+      .receive('ok', () => { this.error = ''; })
+      .receive('error', () => {
+        const [playerRow, playerCol] = this.enemyBoard.player;
+        this.enemyBoard.toggleWall(playerRow, playerCol, direction);
+      });
   }
 
   @action placePlayer(row) {

@@ -117,6 +117,8 @@ export class Board {
         this.placePlayer(action.params[0] - 1);
         break;
       case 'move_player':
+        // @action movePlayer(direction) {
+        this.movePlayer(action.params[0] - 1);
         break;
     }
   }
@@ -180,42 +182,6 @@ export class Board {
     this.cells[row][col].data = GOAL;
     this.goal = [row, col];
   }
-
-  //@action onCellClick(row, col) {
-  //  let direction;
-
-  //  switch (this.state.type) {
-  //    case MOVE_PLAYER:
-  //      direction = directionBetweenCells([row, col], this.player);
-  //      if (direction !== null) {
-  //        const payload = {
-  //          action: {
-  //            name: 'move_player',
-  //            params: [direction + 1],
-  //          }
-  //        };
-  //        socket
-  //          .push('turn', payload)
-  //          .receive('ok', () => console.log('Move player returned ok'))
-  //          .receive('error', () => console.log('Move player returned error'));
-  //      }
-  //      break;
-  //    case PLACE_PLAYER:
-  //      if (col === 0) {
-  //        const payload = {
-  //          action: {
-  //            name: 'place_player',
-  //            params: [[row + 1]],
-  //          }
-  //        };
-  //        socket
-  //          .push('turn', payload)
-  //          .receive('ok', () => console.log('Place player returned ok'))
-  //          .receive('error', () => console.log('Place player returned error'));
-  //      }
-  //      break;
-  //  }
-  //}
 
   @action resetPlaceWall() {
     const [row, col] = this.state.firstCell;

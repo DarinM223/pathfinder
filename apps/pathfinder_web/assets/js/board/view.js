@@ -88,7 +88,7 @@ export class BoardView extends Component {
         this.props.board.placeGoal(row, col);
         break;
       case MOVE_PLAYER:
-        const direction = directionBetweenCells([row, col], this.props.board.player);
+        const direction = directionBetweenCells(this.props.board.player, [row, col]);
         if (direction !== null) {
           this.props.movePlayer(direction);
         }
