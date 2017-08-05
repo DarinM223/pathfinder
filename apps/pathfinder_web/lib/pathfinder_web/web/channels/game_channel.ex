@@ -36,15 +36,8 @@ defmodule PathfinderWeb.Web.GameChannel do
     case Pathfinder.build(game_id, user_id, changes) do
       {:turn, next_player_id} ->
         game = Pathfinder.state(game_id)
-        next_player = get_in(game, [:players, next_player_id])
-        # TODO(DarinM223): render only the state
-        rendered_player = Phoenix.View.render(PlayerView, "player.json", %{
-          id: next_player_id,
-          player: next_player,
-          state: game.state
-        })
 
-        broadcast! socket, "next", rendered_player
+        broadcast! socket, "next", %{changes: [], state: Tuple.to_list(game.state)}
         {:reply, :ok, socket}
       :ok ->
         {:reply, :ok, socket}
@@ -54,12 +47,20 @@ defmodule PathfinderWeb.Web.GameChannel do
   end
 
   def handle_in("turn", %{"action" => action}, game_id, user_id, socket) do
-    result = Pathfinder.turn(game_id, user_id, action)
-    IO.puts("Result: #{result}")
-    case result do
-      :ok ->
+    converted_action = convert_action(action)
+    case Pathfinder.turn(game_id, user_id, converted_action) do
+      {:win, player} ->
+        broadcast! socket, "win", %{player: player}
+        {:reply, :ok, socket}
+      {:turn, player} ->
+        game = Pathfinder.state(game_id)
+
+        broadcast! socket, "next", %{changes: [action], state: Tuple.to_list(game.state)}
         {:reply, :ok, socket}
       _ ->
+        game = Pathfinder.state(game_id)
+
+        broadcast! socket, "next", %{changes: [], state: Tuple.to_list(game.state)}
         {:reply, :error, socket}
     end
   end

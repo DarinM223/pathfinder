@@ -3,6 +3,7 @@ import { action, observable } from 'mobx';
 import { observer } from 'mobx-react';
 import {
   Board,
+  LEFT,
   PLACE_WALL,
   PLACE_GOAL,
   MOVE_PLAYER,
@@ -31,7 +32,18 @@ export class Game {
   ready() {
     this.gamesChannel = this.socket.channel(`games:${this.gameId}`);
 
-    this.gamesChannel.on('next', (player) => this.onNextState(player.state));
+    this.gamesChannel.on('next', ({ changes, state }) => {
+      if (changes.length > 0 && state.length === 2) {
+        for (const change of changes) {
+          if (state[1] == this.playerId) {
+            this.playerBoard.applyAction(change);
+          } else {
+            this.enemyBoard.applyAction(change);
+          }
+        }
+      }
+      this.onNextState(state);
+    });
     this.gamesChannel.join()
       .receive('ok', (player) => {
         console.log('Join succeeded with player: ', player);
@@ -52,13 +64,14 @@ export class Game {
     if (state[0] === 'build') {
       this.playerBoard.transition(PLACE_WALL);
     } else if (state[0] === 'turn' && state[1] == this.playerId) {
-      if (this.playerBoard.player === null) {
-        this.playerBoard.transition(PLACE_PLAYER);
+      if (this.enemyBoard.player === null) {
+        this.enemyBoard.transition(PLACE_PLAYER);
       } else {
-        this.playerBoard.transition(MOVE_PLAYER);
+        this.enemyBoard.transition(MOVE_PLAYER);
       }
     } else {
       this.playerBoard.transition(NO_STATE);
+      this.enemyBoard.transition(NO_STATE);
     }
   }
 
@@ -77,18 +90,30 @@ export class Game {
     });
     const payload = { changes: actions };
 
-    console.log('Build Payload: ', payload);
-
     this.gamesChannel
       .push('build', payload)
       .receive('ok', () => { this.error = ''; })
       .receive('error', () => { this.error = 'Error validating board'; });
   }
 
-  @action movePlayer(row, col, direction) {
+  @action movePlayer(direction) {
+    console.log('movePlayer');
   }
 
   @action placePlayer(row) {
+    const payload = {
+      action: {
+        name: 'place_player',
+        params: [row + 1],
+      }
+    };
+
+    this.gamesChannel
+      .push('turn', payload)
+      .receive('ok', () => { this.error = ''; })
+      .receive('error', () => {
+        this.enemyBoard.cells[row][0].walls[LEFT] = true;
+      });
   }
 }
 
@@ -133,12 +158,11 @@ export class GameView extends Component {
         <div className="alert alert-error">{game.error}</div>
         {switchButton}
         {buildButton}
-        <BoardView
-          board={playerBoard}
-          movePlayer={playerBoard.movePlayer.bind(playerBoard)}
-          placePlayer={playerBoard.placePlayer.bind(playerBoard)}
+        <BoardView board={playerBoard} />
+        <BoardView board={game.enemyBoard}
+          movePlayer={direction => game.movePlayer(direction)}
+          placePlayer={row => game.placePlayer(row)}
         />
-        <BoardView board={game.enemyBoard} />
       </div>
     );
   }

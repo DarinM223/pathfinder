@@ -110,6 +110,17 @@ export class Board {
     }
   }
 
+  @action applyAction(action) {
+    console.log('Applying action: ', action);
+    switch (action.name) {
+      case 'place_player':
+        this.placePlayer(action.params[0] - 1);
+        break;
+      case 'move_player':
+        break;
+    }
+  }
+
   @action transition(state) {
     // Clear highlights from the grid.
     this.clearGrid();
@@ -251,6 +262,10 @@ export class Board {
   }
 
   @action placePlayer(row) {
+    if (this.player !== null) {
+      const [playerRow, playerCol ] = this.player;
+      this.cells[playerRow][playerCol].data = null;
+    }
     this.cells[row][0].data = PLAYER;
     this.player = [row, 0];
   }
