@@ -10,6 +10,7 @@ import {
   SELECTED_HIGHLIGHT,
   HINT_HIGHLIGHT,
   PLACE_WALL,
+  PLACE_PLAYER,
   PLACE_GOAL,
   MOVE_PLAYER,
   directionBetweenCells

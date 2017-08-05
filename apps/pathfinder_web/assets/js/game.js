@@ -4,7 +4,10 @@ import { observer } from 'mobx-react';
 import {
   Board,
   PLACE_WALL,
-  PLACE_GOAL
+  PLACE_GOAL,
+  MOVE_PLAYER,
+  PLACE_PLAYER,
+  NO_STATE
 } from './board/data.js';
 import { BoardView } from './board/view.js';
 
@@ -18,6 +21,7 @@ export class Game {
     this.playerBoard = new Board();
     this.enemyBoard = new Board();
     this.gameId = element.getAttribute('data-id');
+    this.playerId = element.getAttribute('data-playerid');
 
     this.socket.connect();
 
@@ -27,11 +31,7 @@ export class Game {
   ready() {
     this.gamesChannel = this.socket.channel(`games:${this.gameId}`);
 
-    this.gamesChannel.on('turn', ({ playerId, action, success }) => {
-      // TODO(DarinM223): apply player action on the correct player board.
-      // TODO(DarinM223): if the player id is different, transition to move player state.
-    });
-
+    this.gamesChannel.on('next', (player) => this.onNextState(player.state));
     this.gamesChannel.join()
       .receive('ok', (player) => {
         console.log('Join succeeded with player: ', player);
@@ -39,18 +39,27 @@ export class Game {
           this.playerBoard.loadFromBackend(player.board);
           this.enemyBoard.loadFromBackend(player.enemy_board);
 
-          if (player.state[0] === 'build') {
-            this.playerBoard.transition(PLACE_WALL);
-          } else if (player.state[0] === 'turn' && player.state[1] === player.id) {
-            this.playerBoard.transition(MOVE_PLAYER);
-          } else {
-            this.playerBoard.transition(NO_STATE);
-          }
+          this.onNextState(player.state);
         } else {
           this.playerBoard.transition(PLACE_WALL);
         }
       })
       .receive('error', (reason) => console.log('join failed', reason));
+  }
+
+  @action onNextState(state) {
+    console.log('onNextState: ', state);
+    if (state[0] === 'build') {
+      this.playerBoard.transition(PLACE_WALL);
+    } else if (state[0] === 'turn' && state[1] == this.playerId) {
+      if (this.playerBoard.player === null) {
+        this.playerBoard.transition(PLACE_PLAYER);
+      } else {
+        this.playerBoard.transition(MOVE_PLAYER);
+      }
+    } else {
+      this.playerBoard.transition(NO_STATE);
+    }
   }
 
   // TODO(DarinM223): send websocket messages for build(), movePlayer(), and placePlayer().
