@@ -11,6 +11,7 @@ import { BoardView } from './board/view.js';
 export class Game {
   @observable playerBoard;
   @observable enemyBoard;
+  @observable error = null;
 
   constructor(socket, element) {
     this.socket = socket;
@@ -24,16 +25,14 @@ export class Game {
   }
 
   ready() {
-    const gamesChannel = this.socket.channel(`games:${this.gameId}`);
+    this.gamesChannel = this.socket.channel(`games:${this.gameId}`);
 
-    gamesChannel.on('turn', ({ playerId, action, success }) => {
+    this.gamesChannel.on('turn', ({ playerId, action, success }) => {
       // TODO(DarinM223): apply player action on the correct player board.
       // TODO(DarinM223): if the player id is different, transition to move player state.
     });
 
-    console.log('Games channel: ', gamesChannel);
-
-    gamesChannel.join()
+    this.gamesChannel.join()
       .receive('ok', (player) => {
         console.log('Join succeeded with player: ', player);
         if (player !== null) {
@@ -57,6 +56,24 @@ export class Game {
   // TODO(DarinM223): send websocket messages for build(), movePlayer(), and placePlayer().
 
   @action build() {
+    if (this.playerBoard.goal === null) {
+      this.error = 'Goal must be set before validation';
+      return;
+    }
+    const [goalRow, goalCol] = this.playerBoard.goal;
+    const actions = this.playerBoard.setWallActions;
+    actions.push({
+      name: 'place_goal',
+      params: [[goalRow + 1, goalCol + 1]],
+    });
+    const payload = { changes: actions };
+
+    console.log('Build Payload: ', payload);
+
+    this.gamesChannel
+      .push('build', payload)
+      .receive('ok', () => { this.error = ''; })
+      .receive('error', () => { this.error = 'Error validating board'; });
   }
 
   @action movePlayer(row, col, direction) {
@@ -72,12 +89,17 @@ export class GameView extends Component {
     const game = this.props.game;
 
     const playerBoard = game.playerBoard;
-    let buttonControl = null;
+    let switchButton = null;
+    let buildButton = (
+      <button onClick={e => game.build()}>
+        Validate
+      </button>
+    );
     let stateText = '';
     switch (playerBoard.state.type) {
       case PLACE_GOAL:
         stateText = 'Currently placing goal';
-        buttonControl = (
+        switchButton = (
           <button onClick={e => playerBoard.transition(PLACE_WALL)}>
             Place walls
           </button>
@@ -85,18 +107,23 @@ export class GameView extends Component {
         break;
       case PLACE_WALL:
         stateText = 'Currently placing walls';
-        buttonControl = (
+        switchButton = (
           <button onClick={e => playerBoard.transition(PLACE_GOAL)}>
             Place goal
           </button>
         );
+        break;
+      default:
+        buildButton = null;
         break;
     }
 
     return (
       <div>
         <h2>{stateText}</h2>
-        {buttonControl}
+        <div className="alert alert-error">{game.error}</div>
+        {switchButton}
+        {buildButton}
         <BoardView
           board={playerBoard}
           movePlayer={playerBoard.movePlayer.bind(playerBoard)}

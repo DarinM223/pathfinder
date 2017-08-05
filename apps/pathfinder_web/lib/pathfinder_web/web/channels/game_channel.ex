@@ -32,6 +32,7 @@ defmodule PathfinderWeb.Web.GameChannel do
   end
 
   def handle_in("build", %{"changes" => changes}, game_id, user_id, socket) do
+    changes = Enum.map(changes, &convert_action/1)
     case Pathfinder.build(game_id, user_id, changes) do
       :ok ->
         {:reply, :ok, socket}
@@ -47,5 +48,17 @@ defmodule PathfinderWeb.Web.GameChannel do
       _ ->
         {:reply, :error, socket}
     end
+  end
+
+  @allowed_actions ["place_goal", "set_wall", "place_player", "remove_player", "move_player"]
+
+  defp convert_action(%{"name" => name, "params" => params})
+      when is_binary(name) and is_list(params) and name in @allowed_actions do
+    convert_to_tuples = fn
+      l when is_list(l) -> List.to_tuple(l)
+      e -> e
+    end
+
+    {String.to_atom(name), Enum.map(params, convert_to_tuples)}
   end
 end

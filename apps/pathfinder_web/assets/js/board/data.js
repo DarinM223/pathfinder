@@ -58,6 +58,34 @@ export class Board {
    */
   @observable state = { type: NO_STATE };
 
+  @computed get setWallActions() {
+    const walls = [];
+    for (let row = 0; row < 6; row++) {
+      // Set walls in middle.
+      for (let col = 0; col < 6; col++) {
+        for (const direction of [RIGHT, BOTTOM]) {
+          const [nextRow, nextCol] = next(row, col, direction);
+          if (isValidCell(nextRow, nextCol) && this.cells[row][col].walls[direction] === true) {
+            walls.push({
+              name: 'set_wall',
+              params: [[row + 1, col + 1], [nextRow + 1, nextCol + 1], true],
+            });
+          }
+        }
+      }
+
+      // Set row walls.
+      if (this.cells[row][0].walls[LEFT] === true) {
+        walls.push({
+          name: 'set_wall',
+          params: [row + 1, true],
+        });
+      }
+    }
+
+    return walls;
+  }
+
   @action loadFromBackend(board) {
     this.player = board.player;
     this.goal = board.goal;
