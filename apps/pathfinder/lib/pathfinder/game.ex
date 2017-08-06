@@ -115,6 +115,7 @@ defmodule Pathfinder.Game do
       game = update_in(game.players[player].enemy_board, fn _ -> player_enemy_board end)
 
       if Game.won?(game, enemy) do
+        game = %{game | state: {:win, player}}
         {:win, player, game}
       else
         {:turn, enemy, game}

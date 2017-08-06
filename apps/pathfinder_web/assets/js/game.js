@@ -17,6 +17,7 @@ export class Game {
   @observable playerBoard;
   @observable enemyBoard;
   @observable error = null;
+  @observable won = null;
 
   constructor(socket, element) {
     this.socket = socket;
@@ -36,15 +37,27 @@ export class Game {
     this.gamesChannel.on('next', ({ changes, state }) => {
       if (changes.length > 0 && state.length === 2) {
         for (const change of changes) {
-          if (state[1] == this.playerId) {
-            this.playerBoard.applyAction(change);
-          } else {
-            this.enemyBoard.applyAction(change);
+          switch (state[0]) {
+            case 'win':
+              if (state[1] == this.playerId) {
+                this.enemyBoard.applyAction(change);
+              } else {
+                this.playerBoard.applyAction(change);
+              }
+              break;
+            case 'turn':
+              if (state[1] == this.playerId) {
+                this.playerBoard.applyAction(change);
+              } else {
+                this.enemyBoard.applyAction(change);
+              }
+              break;
           }
         }
       }
       this.onNextState(state);
     });
+
     this.gamesChannel.join()
       .receive('ok', (player) => {
         console.log('Join succeeded with player: ', player);
@@ -64,6 +77,14 @@ export class Game {
     console.log('onNextState: ', state);
     if (state[0] === 'build') {
       this.playerBoard.transition(PLACE_WALL);
+    } else if (state[0] === 'win') {
+      if (state[1] == this.playerId) {
+        this.won = true;
+      } else {
+        this.won = false;
+      }
+      this.playerBoard.transition(NO_STATE);
+      this.enemyBoard.transition(NO_STATE);
     } else if (state[0] === 'turn' && state[1] == this.playerId) {
       if (this.enemyBoard.player === null) {
         this.enemyBoard.transition(PLACE_PLAYER);
@@ -96,7 +117,6 @@ export class Game {
   }
 
   @action movePlayer(direction) {
-    console.log('movePlayer');
     const payload = {
       action: {
         name: 'move_player',
@@ -163,6 +183,12 @@ export class GameView extends Component {
       default:
         buildButton = null;
         break;
+    }
+
+    if (game.won === true) {
+      stateText = 'You won! :)';
+    } else if (game.won === false) {
+      stateText = 'You lost! :(';
     }
 
     return (

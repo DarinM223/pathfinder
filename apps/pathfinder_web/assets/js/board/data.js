@@ -120,7 +120,6 @@ export class Board {
         this.placePlayer(action.params[0] - 1);
         break;
       case 'move_player':
-        // @action movePlayer(direction) {
         this.movePlayer(action.params[0] - 1);
         break;
     }

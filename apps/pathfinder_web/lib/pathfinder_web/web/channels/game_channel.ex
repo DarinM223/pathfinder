@@ -50,7 +50,9 @@ defmodule PathfinderWeb.Web.GameChannel do
     converted_action = convert_action(action)
     case Pathfinder.turn(game_id, user_id, converted_action) do
       {:win, player} ->
-        broadcast! socket, "win", %{player: player}
+        game = Pathfinder.state(game_id)
+
+        broadcast! socket, "next", %{changes: [action], state: Tuple.to_list(game.state)}
         {:reply, :ok, socket}
       {:turn, player} ->
         game = Pathfinder.state(game_id)
