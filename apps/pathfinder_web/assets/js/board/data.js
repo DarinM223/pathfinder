@@ -16,6 +16,7 @@ export const HINT_HIGHLIGHT = 'HINT_HIGHLIGHT';
 
 export const PLAYER = 'PLAYER';
 export const GOAL = 'GOAL';
+export const MARKER = 'MARKER';
 
 export class Cell {
   @observable data = null;
@@ -92,7 +93,9 @@ export class Board {
 
     for (const boardCell of board.cells) {
       const cell = new Cell();
-      cell.data = boardCell.data;
+      if (boardCell.data === 'marker') {
+        cell.data = MARKER;
+      }
       cell.walls = [
         boardCell.top,
         boardCell.right,
@@ -238,7 +241,7 @@ export class Board {
 
   @action movePlayer(direction) {
     const [row, col] = this.player;
-    this.cells[row][col].data = null;
+    this.cells[row][col].data = MARKER;
 
     const [nextRow, nextCol] = next(row, col, direction);
     this.cells[nextRow][nextCol].data = PLAYER;

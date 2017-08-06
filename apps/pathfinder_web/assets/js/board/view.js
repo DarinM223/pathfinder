@@ -7,6 +7,7 @@ import {
   LEFT,
   PLAYER,
   GOAL,
+  MARKER,
   SELECTED_HIGHLIGHT,
   HINT_HIGHLIGHT,
   PLACE_WALL,
@@ -50,6 +51,9 @@ export class CellView extends Component {
         break;
       case GOAL:
         cellText = 'G';
+        break;
+      case MARKER:
+        cellText = '0';
         break;
     }
 
