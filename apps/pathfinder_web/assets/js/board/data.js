@@ -122,6 +122,9 @@ export class Board {
       case 'move_player':
         this.movePlayer(action.params[0] - 1);
         break;
+      case 'remove_player':
+        this.removePlayer();
+        break;
     }
   }
 
@@ -246,6 +249,13 @@ export class Board {
     this.cells[nextRow][nextCol].data = PLAYER;
 
     this.player = [nextRow, nextCol];
+  }
+
+  @action removePlayer() {
+    const [row, col] = this.player;
+    this.cells[row][col].data = MARKER;
+
+    this.player = null;
   }
 }
 

@@ -148,6 +148,22 @@ export class Game {
         this.enemyBoard.cells[row][0].walls[LEFT] = true;
       });
   }
+
+  @action removePlayer(row) {
+    const payload = {
+      action: {
+        name: 'remove_player',
+        params: [],
+      }
+    };
+
+    this.gamesChannel
+      .push('turn', payload)
+      .receive('ok', () => { this.error = ''; })
+      .receive('error', () => {
+        this.enemyBoard.cells[row][0].walls[LEFT] = true;
+      });
+  }
 }
 
 @observer
@@ -201,6 +217,7 @@ export class GameView extends Component {
         <BoardView board={game.enemyBoard}
           movePlayer={direction => game.movePlayer(direction)}
           placePlayer={row => game.placePlayer(row)}
+          removePlayer={row => game.removePlayer(row)}
         />
       </div>
     );
