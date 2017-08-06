@@ -2,3 +2,5 @@
 <% end %>
 
 <div id="game"></div>
+
+<a href="<%= share_link(@game) %>">Share link</a>

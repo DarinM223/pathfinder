@@ -8,4 +8,8 @@ defmodule PathfinderWeb.Web.GameView do
       -1
     end
   end
+
+  def share_link(game) do
+    "/play/#{game.shareid}"
+  end
 end

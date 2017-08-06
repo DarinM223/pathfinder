@@ -3,8 +3,8 @@ defmodule PathfinderWeb.Web.PlayController do
 
   alias PathfinderWeb.Data
 
-  def show(conn, %{"id" => id}) do
-    game = Data.get_game!(id)
+  def show(conn, %{"shareid" => shareid}) do
+    game = Data.get_shared_game!(shareid)
     render conn, "show.html", game: game
   end
 end

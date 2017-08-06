@@ -9,8 +9,8 @@ defmodule PathfinderWeb.Data do
     |> Repo.all()
   end
 
-  def get_game!(id) do
-    Repo.get!(Game, id)
+  def get_shared_game!(shareid) do
+    Repo.get_by!(Game, shareid: shareid)
   end
 
   def get_user_game!(%User{} = user, id) do
@@ -32,7 +32,7 @@ defmodule PathfinderWeb.Data do
   def create_user_game(%User{} = user, attrs) do
     user
     |> Ecto.build_assoc(:games)
-    |> Game.changeset(attrs)
+    |> Game.create_changeset(attrs)
     |> Repo.insert()
   end
 

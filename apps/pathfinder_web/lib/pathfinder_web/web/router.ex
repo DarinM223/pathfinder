@@ -20,7 +20,7 @@ defmodule PathfinderWeb.Web.Router do
     get "/", PageController, :index
     resources "/users", UserController, only: [:show, :new, :create]
     resources "/sessions", SessionController, only: [:new, :create, :delete]
-    get "/play/:id", PlayController, :show
+    get "/play/:shareid", PlayController, :show
   end
 
   scope "/manage", PathfinderWeb.Web do

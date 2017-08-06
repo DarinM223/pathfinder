@@ -7,6 +7,7 @@ defmodule PathfinderWeb.Data.Game do
   schema "games" do
     belongs_to :user, PathfinderWeb.Accounts.User
     field :other_user_id, :integer
+    field :shareid, :string
 
     timestamps()
   end
@@ -16,5 +17,11 @@ defmodule PathfinderWeb.Data.Game do
     game
     |> cast(attrs, [])
     |> validate_required([])
+  end
+
+  def create_changeset(%Game{} = game, attrs) do
+    game
+    |> changeset(attrs)
+    |> put_change(:shareid, Ecto.UUID.generate())
   end
 end
