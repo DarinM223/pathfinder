@@ -5,8 +5,21 @@
 // and connect at the socket path in "lib/web/endpoint.ex":
 import {Socket} from 'phoenix';
 
+const element = document.getElementById('game');
+const dataId = element.getAttribute('data-id');
+
+let token = window.unauthorizedUserToken;
+if (typeof token === 'undefined' || token === null) {
+  token = localStorage.getItem(dataId);
+  if (typeof token === 'undefined' || token === null) {
+    token = window.userToken;
+  }
+} else {
+  localStorage.setItem(dataId, window.unauthorizedUserToken);
+}
+
 const socket = new Socket('/socket', {
-  params: {token: window.userToken},
+  params: {token: token},
   logger: (kind, msg, data) => { console.log(`${kind}:${msg}`, data); }
 });
 

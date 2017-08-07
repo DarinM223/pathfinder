@@ -8,6 +8,7 @@ defmodule PathfinderWeb.Data.Game do
     belongs_to :user, PathfinderWeb.Accounts.User
     field :other_user_id, :integer
     field :shareid, :string
+    field :accessed, :boolean
 
     timestamps()
   end
@@ -15,7 +16,7 @@ defmodule PathfinderWeb.Data.Game do
   @doc false
   def changeset(%Game{} = game, attrs) do
     game
-    |> cast(attrs, [])
+    |> cast(attrs, [:accessed])
     |> validate_required([])
   end
 

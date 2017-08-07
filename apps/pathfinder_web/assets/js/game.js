@@ -26,7 +26,7 @@ export class Game {
     this.enemyBoard = new Board();
     this.gameId = element.getAttribute('data-id');
     this.playerId = element.getAttribute('data-playerid');
-    this.shareId = element.getAttribute('data-shareid') + '';
+    this.shareId = element.getAttribute('data-shareid');
 
     this.socket.connect();
 

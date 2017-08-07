@@ -1,4 +1,8 @@
 <%= content_tag :div, id: "game", data: [id: @game.id, playerid: player_id(@conn)] do %>
 <% end %>
 
+<%= if @token do %>
+  <script>window.unauthorizedUserToken = '<%= @token %>';</script>
+<% end %>
+
 <div id="game"></div>
