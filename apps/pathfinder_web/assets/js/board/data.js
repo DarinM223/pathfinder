@@ -227,6 +227,14 @@ export class Board {
       !this.cells[nextRow][nextCol].walls[reversedDirection];
   }
 
+  @action setWall(row, col, direction) {
+    this.cells[row][col].walls[direction] = true;
+
+    const [nextRow, nextCol] = next(row, col, direction);
+    const reversedDirection = reverse(direction);
+    this.cells[nextRow][nextCol].walls[reversedDirection] = true;
+  }
+
   @action toggleRowWall(row) {
     this.cells[row][0].walls[LEFT] =
       !this.cells[row][0].walls[LEFT];

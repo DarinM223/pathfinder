@@ -129,7 +129,7 @@ export class Game {
       .receive('ok', () => { this.error = ''; })
       .receive('error', () => {
         const [playerRow, playerCol] = this.enemyBoard.player;
-        this.enemyBoard.toggleWall(playerRow, playerCol, direction);
+        this.enemyBoard.setWall(playerRow, playerCol, direction);
       });
   }
 
