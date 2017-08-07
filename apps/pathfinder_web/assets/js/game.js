@@ -12,6 +12,7 @@ import {
   next
 } from './board/data.js';
 import { BoardView } from './board/view.js';
+import CopyToClipboard from 'react-copy-to-clipboard';
 
 export class Game {
   @observable playerBoard;
@@ -25,6 +26,7 @@ export class Game {
     this.enemyBoard = new Board();
     this.gameId = element.getAttribute('data-id');
     this.playerId = element.getAttribute('data-playerid');
+    this.shareId = element.getAttribute('data-shareid') + '';
 
     this.socket.connect();
 
@@ -60,7 +62,6 @@ export class Game {
 
     this.gamesChannel.join()
       .receive('ok', (player) => {
-        console.log('Join succeeded with player: ', player);
         if (player !== null) {
           this.playerBoard.loadFromBackend(player.board);
           this.enemyBoard.loadFromBackend(player.enemy_board);
@@ -74,7 +75,6 @@ export class Game {
   }
 
   @action onNextState(state) {
-    console.log('onNextState: ', state);
     if (state[0] === 'build') {
       this.playerBoard.transition(PLACE_WALL);
     } else if (state[0] === 'win') {
@@ -166,6 +166,11 @@ export class Game {
   }
 }
 
+const buttonStyle = {
+  marginLeft: '10px',
+  marginRight: '5px'
+};
+
 @observer
 export class GameView extends Component {
   render() {
@@ -174,7 +179,7 @@ export class GameView extends Component {
     const playerBoard = game.playerBoard;
     let switchButton = null;
     let buildButton = (
-      <button onClick={e => game.build()}>
+      <button className="btn btn-success" onClick={e => game.build()}>
         Validate
       </button>
     );
@@ -183,16 +188,22 @@ export class GameView extends Component {
       case PLACE_GOAL:
         stateText = 'Currently placing goal';
         switchButton = (
-          <button onClick={e => playerBoard.transition(PLACE_WALL)}>
-            Place walls
+          <button
+            style={buttonStyle}
+            className="btn btn-info"
+            onClick={e => playerBoard.transition(PLACE_WALL)}>
+            Placing goal
           </button>
         );
         break;
       case PLACE_WALL:
         stateText = 'Currently placing walls';
         switchButton = (
-          <button onClick={e => playerBoard.transition(PLACE_GOAL)}>
-            Place goal
+          <button
+            style={buttonStyle}
+            className="btn btn-info"
+            onClick={e => playerBoard.transition(PLACE_GOAL)}>
+            Placing walls
           </button>
         );
         break;
@@ -207,18 +218,39 @@ export class GameView extends Component {
       stateText = 'You lost! :(';
     }
 
+    let errorText = null;
+    if (game.error !== null && game.error.length > 0) {
+      errorText = <div className="alert alert-danger" role="alert">{game.error}</div>;
+    }
+
     return (
       <div>
-        <h2>{stateText}</h2>
-        <div className="alert alert-error">{game.error}</div>
-        {switchButton}
-        {buildButton}
-        <BoardView board={playerBoard} />
-        <BoardView board={game.enemyBoard}
-          movePlayer={direction => game.movePlayer(direction)}
-          placePlayer={row => game.placePlayer(row)}
-          removePlayer={row => game.removePlayer(row)}
-        />
+        {errorText}
+        <div className="container center-block">
+          <div className="row">
+            <div className="col-md-2" />
+            <div className="col-md-4">
+              <h3>Your board</h3>
+              <BoardView board={playerBoard} />
+              <br />
+              {switchButton}
+              {buildButton}
+            </div>
+            <div className="col-md-4">
+              <h3>Other player's board</h3>
+              <BoardView board={game.enemyBoard}
+                movePlayer={direction => game.movePlayer(direction)}
+                placePlayer={row => game.placePlayer(row)}
+                removePlayer={row => game.removePlayer(row)}
+              />
+              <br />
+              <CopyToClipboard text={game.shareId}>
+                <button style={buttonStyle} className="btn btn-info">Copy share url</button>
+              </CopyToClipboard>
+            </div>
+            <div className="col-md-2" />
+          </div>
+        </div>
       </div>
     );
   }

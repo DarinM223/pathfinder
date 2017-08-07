@@ -12,20 +12,34 @@
   </head>
 
   <body>
+    <nav class="navbar navbar-default navbar-light bg-faded">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <%= link "Pathfinder", to: page_path(@conn, :index), class: "navbar-brand" %>
+        </div>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="nav navbar-nav">
+            <%= if @current_user do %>
+              <li><%= link "Games", to: game_path(@conn, :index) %></li>
+            <% end %>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <%= if @current_user do %>
+              <li><%= link "Logout", to: session_path(@conn, :delete, @current_user), method: "delete", class: "navbar-text" %></li>
+            <% else %>
+              <li><%= link "Login", to: session_path(@conn, :new) %></li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    </nav>
     <div class="container">
-      <header class="header">
-        <ol class="breadcrumb text-right">
-          <%= if @current_user do %>
-            <li><%= @current_user.username %></li>
-            <li><%= link "Logout", to: session_path(@conn, :delete, @current_user), method: "delete" %></li>
-          <% else %>
-            <li><%= link "Login", to: session_path(@conn, :new) %></li>
-          <% end %>
-        </ol>
-      </header>
-
-      <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
-      <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
+      <%= if flash = get_flash(@conn, :info) do %>
+        <p class="alert alert-info" role="alert"><%= flash %></p>
+      <% end %>
+      <%= if flash = get_flash(@conn, :error) do %>
+        <p class="alert alert-danger" role="alert"><%= flash %></p>
+      <% end %>
 
       <main role="main">
         <%= render @view_module, @view_template, assigns %>

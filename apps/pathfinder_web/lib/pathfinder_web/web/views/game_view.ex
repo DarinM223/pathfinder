@@ -9,7 +9,7 @@ defmodule PathfinderWeb.Web.GameView do
     end
   end
 
-  def share_link(game) do
-    "/play/#{game.shareid}"
+  def share_link(conn, game) do
+    PathfinderWeb.Web.Router.Helpers.url(conn) <> "/play/#{game.shareid}"
   end
 end

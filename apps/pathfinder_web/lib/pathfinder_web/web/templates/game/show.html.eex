@@ -1,6 +1,4 @@
-<%= content_tag :div, id: "game", data: [id: @game.id, playerid: player_id(@conn)] do %>
+<%= content_tag :div, id: "game", data: [id: @game.id, playerid: player_id(@conn), shareid: share_link(@conn, @game)] do %>
 <% end %>
 
 <div id="game"></div>
-
-<a href="<%= share_link(@game) %>">Share link</a>
