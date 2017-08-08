@@ -1,1 +1,19 @@
 /* This file is for your main application css. */
+
+.outer {
+    text-align: center;
+    display: table;
+    position: absolute;
+    height: 80%;
+    width: 100%;
+}
+
+.middle {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.inner {
+    margin-left: auto;
+    margin-right: auto;
+}
