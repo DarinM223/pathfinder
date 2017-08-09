@@ -1,7 +1,9 @@
 defmodule PathfinderWeb.Data.Game do
   use Ecto.Schema
   import Ecto.Changeset
+  alias PathfinderWeb.Accounts.User
   alias PathfinderWeb.Data.Game
+  alias PathfinderWeb.Repo
 
 
   schema "games" do
@@ -9,6 +11,8 @@ defmodule PathfinderWeb.Data.Game do
     field :other_user_id, :integer
     field :shareid, :string
     field :accessed, :boolean
+    field :other_user_name, :string
+    field :other_user_type, :string, virtual: true
 
     timestamps()
   end
@@ -20,9 +24,46 @@ defmodule PathfinderWeb.Data.Game do
     |> validate_required([])
   end
 
-  def create_changeset(%Game{} = game, attrs) do
+  def create_changeset(%Game{} = game, user_id, attrs) do
     game
     |> changeset(attrs)
+    |> cast(attrs, [:other_user_type, :other_user_name])
+    |> validate_required([:other_user_type, :other_user_name])
+    |> validate_length(:other_user_name, min: 1, max: 20)
+    |> validate_other_user_name()
+    |> validate_different_ids(user_id)
     |> put_change(:shareid, Ecto.UUID.generate())
   end
+
+  # Validates that if it is an existing user,
+  # the user with that name exists in the database.
+  defp validate_other_user_name(%{changes: changes, valid?: true} = changeset) do
+    other_user_type = changes[:other_user_type]
+    other_user_name = changes[:other_user_name]
+
+    case other_user_type do
+      "existing" ->
+        user = Repo.get_by(User, username: other_user_name)
+        if user == nil do
+          add_error(changeset, :other_user_name, "must be a valid user")
+        else
+          changeset
+          |> put_change(:other_user_id, user.id)
+          |> put_change(:other_user_name, user.username)
+        end
+      "nonexisting" ->
+        changeset
+    end
+  end
+  defp validate_other_user_name(changeset), do: changeset
+
+  # Validates that the ids of the two users are not the same.
+  defp validate_different_ids(%{changes: changes, valid?: true} = changeset, user_id) do
+    if changes[:other_user_id] == user_id do
+      add_error(changeset, :other_user_name, "users must be different")
+    else
+      changeset
+    end
+  end
+  defp validate_different_ids(changeset, _user_id), do: changeset
 end

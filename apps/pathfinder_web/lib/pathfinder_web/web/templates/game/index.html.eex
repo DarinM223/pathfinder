@@ -1,10 +1,8 @@
 <div class="container">
-  <h2>Listing games</h2>
 
-  <%= form_for @conn, game_path(@conn, :create), [as: :game], fn f -> %>
-    <%= submit "New game", class: "btn btn-primary" %>
-  <% end %>
+  <%= link "New game", to: game_path(@conn, :new), class: "btn btn-primary" %>
 
+  <h2>Your created games:</h2>
   <table class="table">
     <thead>
       <tr>
@@ -12,12 +10,31 @@
       </tr>
     </thead>
     <tbody>
-      <%= for game <- @games do %>
+      <%= for game <- @created_games do %>
         <tr>
-          <td><%= link inspect(game.id), to: game_path(@conn, :show, game) %></td>
+          <td><%= link game.other_user_name, to: game_path(@conn, :show, game) %></td>
           <td class="text-right">
             <%= link "Delete", to: game_path(@conn, :delete, game), class: "btn btn-danger", method: :delete %>
           </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <br />
+  <br />
+
+  <h2>Games you are participating in:</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Game</th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= for game <- @participating_games do %>
+        <tr>
+          <td><%= link game.user.username, to: play_path(@conn, :show, game.shareid) %></td>
         </tr>
       <% end %>
     </tbody>

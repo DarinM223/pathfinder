@@ -26,7 +26,7 @@ defmodule PathfinderWeb.Web.Router do
   scope "/manage", PathfinderWeb.Web do
     pipe_through [:browser, :authenticate_user]
 
-    resources "/games", GameController, only: [:index, :create, :show, :delete]
+    resources "/games", GameController, only: [:new, :index, :create, :show, :delete]
   end
 
   # Other scopes may use custom stacks.

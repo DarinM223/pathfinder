@@ -2,11 +2,16 @@ defmodule PathfinderWeb.Data do
   alias PathfinderWeb.Repo
   alias PathfinderWeb.Accounts.User
   alias PathfinderWeb.Data.Game
+  import Ecto.Query
 
-  def list_user_games(%User{} = user) do
+  def list_user_created_games(%User{} = user) do
     user
     |> Ecto.assoc(:games)
     |> Repo.all()
+  end
+
+  def list_user_participating_games(%User{} = user) do
+    Repo.all(from g in Game, where: g.other_user_id == ^user.id)
   end
 
   def get_shared_game!(shareid) do
@@ -32,7 +37,7 @@ defmodule PathfinderWeb.Data do
   def create_user_game(%User{} = user, attrs) do
     user
     |> Ecto.build_assoc(:games)
-    |> Game.create_changeset(attrs)
+    |> Game.create_changeset(user.id, attrs)
     |> Repo.insert()
   end
 

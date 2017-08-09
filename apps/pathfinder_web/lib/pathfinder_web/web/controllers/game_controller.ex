@@ -2,15 +2,27 @@ defmodule PathfinderWeb.Web.GameController do
   use PathfinderWeb.Web, :controller
 
   alias PathfinderWeb.Data
+  alias PathfinderWeb.Repo
 
   def index(conn, _, user) do
-    games = Data.list_user_games(user)
+    created_games = Data.list_user_created_games(user)
+    participating_games =
+      Data.list_user_participating_games(user)
+      |> Enum.map(&Repo.preload(&1, :user))
 
-    render conn, "index.html", games: games
+    render conn, "index.html",
+      created_games: created_games,
+      participating_games: participating_games
   end
 
-  def create(conn, _params, user) do
-    case Data.create_user_game(user, %{}) do
+  def new(conn, _params, _user) do
+    changeset = Data.change_game()
+
+    render conn, "new.html", changeset: changeset
+  end
+
+  def create(conn, %{"game" => game_params}, user) do
+    case Data.create_user_game(user, game_params) do
       {:ok, _} ->
         conn
         |> put_flash(:info, "Game created successfully")
