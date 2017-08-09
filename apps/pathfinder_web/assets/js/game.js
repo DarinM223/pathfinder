@@ -12,6 +12,7 @@ import {
   next
 } from './board/data.js';
 import { BoardView } from './board/view.js';
+import { GameTextView } from './text.js';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 export class Game {
@@ -112,8 +113,14 @@ export class Game {
 
     this.gamesChannel
       .push('build', payload)
-      .receive('ok', () => { this.error = ''; })
-      .receive('error', () => { this.error = 'Error validating board'; });
+      .receive('ok', () => {
+        this.error = '';
+        this.playerBoard.transition(NO_STATE);
+      })
+      .receive('error', () => {
+        this.error = `The maze is not valid; a valid maze has to have an
+        unblocked path from the left side of the board to the goal.`;
+      });
   }
 
   @action movePlayer(direction) {
@@ -186,7 +193,6 @@ export class GameView extends Component {
     let stateText = '';
     switch (playerBoard.state.type) {
       case PLACE_GOAL:
-        stateText = 'Currently placing goal';
         switchButton = (
           <button
             style={buttonStyle}
@@ -197,7 +203,6 @@ export class GameView extends Component {
         );
         break;
       case PLACE_WALL:
-        stateText = 'Currently placing walls';
         switchButton = (
           <button
             style={buttonStyle}
@@ -212,21 +217,12 @@ export class GameView extends Component {
         break;
     }
 
-    if (game.won === true) {
-      stateText = 'You won! :)';
-    } else if (game.won === false) {
-      stateText = 'You lost! :(';
-    }
-
-    let errorText = null;
-    if (game.error !== null && game.error.length > 0) {
-      errorText = <div className="alert alert-danger" role="alert">{game.error}</div>;
-    }
-
     return (
       <div>
-        {errorText}
         <div className="container center-block">
+          <div className="row">
+            <GameTextView game={game} />
+          </div>
           <div className="row">
             <div className="col-md-2" />
             <div className="col-md-4">

@@ -114,7 +114,6 @@ export class Board {
   }
 
   @action applyAction(action) {
-    console.log('Applying action: ', action);
     switch (action.name) {
       case 'place_player':
         this.placePlayer(action.params[0] - 1);
