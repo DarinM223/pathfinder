@@ -18,6 +18,10 @@ defmodule PathfinderWeb.Data do
     Repo.get_by!(Game, shareid: shareid)
   end
 
+  def get_game!(id) do
+    Repo.get!(Game, id)
+  end
+
   def get_user_game!(%User{} = user, id) do
     user
     |> Ecto.assoc(:games)

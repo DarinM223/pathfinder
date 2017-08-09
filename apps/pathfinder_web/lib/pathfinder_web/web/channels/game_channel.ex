@@ -1,28 +1,40 @@
 defmodule PathfinderWeb.Web.GameChannel do
   use PathfinderWeb.Web, :channel
 
-  alias PathfinderWeb.Accounts
   alias PathfinderWeb.Data
   alias PathfinderWeb.Web.PlayerView
 
-  def join("games:" <> game_id, params, socket) do
+  def join("games:" <> game_id, _params, socket) do
     game_id = game_id |> Integer.parse() |> elem(0)
-    if id = Pathfinder.full_game_id(game_id) do
-      game = Pathfinder.state(id)
-      player = get_in(game, [:players, socket.assigns.user_id])
-      rendered_player = Phoenix.View.render(PlayerView, "player.json", %{
-        id: socket.assigns.user_id,
-        player: player,
-        state: game.state,
-      })
-      {:ok, rendered_player, assign(socket, :game_id, id)}
+    game = Data.get_game!(game_id)
+    user_id = socket.assigns.user_id
+
+    if is_valid_user?(game, user_id) do
+      handle_user_join(Pathfinder.full_game_id(game_id),
+                       game, user_id, socket)
     else
-      user = Accounts.get_user!(socket.assigns.user_id)
-      game = Data.get_user_game!(user, game_id)
-      other_player_id = game.other_user_id
-      {:ok, id} = Pathfinder.add(game_id, socket.assigns.user_id, other_player_id)
-      {:ok, nil, assign(socket, :game_id, id)}
+      {:error, "User is not a player in this game"}
     end
+  end
+
+  defp is_valid_user?(game, user_id) do
+    user_id == game.user_id or user_id == game.other_user_id
+  end
+
+  defp handle_user_join(nil, game, _, socket) do
+    {:ok, id} = Pathfinder.add(game.id, game.user_id, game.other_user_id)
+    {:ok, nil, assign(socket, :game_id, id)}
+  end
+  defp handle_user_join(worker_id, _, user_id, socket) do
+    game = Pathfinder.state(worker_id)
+    player = get_in(game, [:players, user_id])
+    rendered_player = Phoenix.View.render(PlayerView, "player.json", %{
+      id: user_id,
+      player: player,
+      state: game.state,
+    })
+
+    {:ok, rendered_player, assign(socket, :game_id, worker_id)}
   end
 
   def handle_in(action, params, socket) do
@@ -34,7 +46,7 @@ defmodule PathfinderWeb.Web.GameChannel do
   def handle_in("build", %{"changes" => changes}, game_id, user_id, socket) do
     changes = Enum.map(changes, &convert_action/1)
     case Pathfinder.build(game_id, user_id, changes) do
-      {:turn, next_player_id} ->
+      {:turn, _} ->
         game = Pathfinder.state(game_id)
 
         broadcast! socket, "next", %{changes: [], state: Tuple.to_list(game.state)}
@@ -49,12 +61,12 @@ defmodule PathfinderWeb.Web.GameChannel do
   def handle_in("turn", %{"action" => action}, game_id, user_id, socket) do
     converted_action = convert_action(action)
     case Pathfinder.turn(game_id, user_id, converted_action) do
-      {:win, player} ->
+      {:win, _} ->
         game = Pathfinder.state(game_id)
 
         broadcast! socket, "next", %{changes: [action], state: Tuple.to_list(game.state)}
         {:reply, :ok, socket}
-      {:turn, player} ->
+      {:turn, _} ->
         game = Pathfinder.state(game_id)
 
         broadcast! socket, "next", %{changes: [action], state: Tuple.to_list(game.state)}
