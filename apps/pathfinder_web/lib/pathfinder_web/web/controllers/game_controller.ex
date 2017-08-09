@@ -39,12 +39,17 @@ defmodule PathfinderWeb.Web.GameController do
   end
 
   def delete(conn, %{"id" => id}, user) do
-    game = Data.get_user_game!(user, id)
-    {:ok, _} = Data.delete_game(game)
-
-    conn
-    |> put_flash(:info, "Video deleted successfully")
-    |> redirect(to: game_path(conn, :index))
+    game = Data.get_game!(id)
+    if game.user_id == user.id or game.other_user_id == user.id do
+      {:ok, _} = Data.delete_game(game)
+      conn
+      |> put_flash(:info, "Video deleted successfully")
+      |> redirect(to: game_path(conn, :index))
+    else
+      conn
+      |> put_flash(:error, "Invalid game id")
+      |> redirect(to: game_path(conn, :index))
+    end
   end
 
   @doc """

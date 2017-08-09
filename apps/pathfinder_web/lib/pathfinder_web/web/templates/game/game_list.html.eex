@@ -1,0 +1,19 @@
+<table class="table">
+  <thead>
+    <tr>
+      <th>Game</th>
+    </tr>
+  </thead>
+  <tbody>
+    <%= for game <- @games do %>
+      <tr>
+        <td><%= link @username.(game), to: @path.(game) %></td>
+        <%= if path = @delete_path.(game) do %>
+          <td class="text-right">
+            <%= link "Delete", to: path, class: "btn btn-danger", method: :delete %>
+          </td>
+        <% end %>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

@@ -25,9 +25,9 @@
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <%= if @current_user do %>
-              <li><%= link "Logout", to: session_path(@conn, :delete, @current_user), method: "delete", class: "navbar-text" %></li>
+              <li><%= link "Sign out", to: session_path(@conn, :delete, @current_user), method: "delete", class: "navbar-text" %></li>
             <% else %>
-              <li><%= link "Login", to: session_path(@conn, :new) %></li>
+              <li><%= link "Sign in", to: session_path(@conn, :new) %></li>
             <% end %>
           </ul>
         </div>

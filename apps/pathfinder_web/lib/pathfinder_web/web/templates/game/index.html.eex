@@ -1,42 +1,17 @@
 <div class="container">
-
-  <%= link "New game", to: game_path(@conn, :new), class: "btn btn-primary" %>
-
-  <h2>Your created games:</h2>
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Game</th>
-      </tr>
-    </thead>
-    <tbody>
-      <%= for game <- @created_games do %>
-        <tr>
-          <td><%= link game.other_user_name, to: game_path(@conn, :show, game) %></td>
-          <td class="text-right">
-            <%= link "Delete", to: game_path(@conn, :delete, game), class: "btn btn-danger", method: :delete %>
-          </td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
-
-  <br />
-  <br />
-
-  <h2>Games you are participating in:</h2>
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Game</th>
-      </tr>
-    </thead>
-    <tbody>
-      <%= for game <- @participating_games do %>
-        <tr>
-          <td><%= link game.user.username, to: play_path(@conn, :show, game.shareid) %></td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 style="display: inline;">Your created games:</h2>
+      <%= link "+", to: game_path(@conn, :new), class: "btn btn-primary add-game" %>
+      <%= render "game_list.html", games: @created_games, username: &(&1.other_user_name),
+                                   path: &game_path(@conn, :show, &1),
+                                   delete_path: &game_path(@conn, :delete, &1) %>
+    </div>
+    <div class="col-md-6">
+      <h2 style="display: inline;">Games you are participating in:</h2>
+      <%= render "game_list.html", games: @participating_games, username: &(&1.user.username),
+                                   path: &play_path(@conn, :show, &1.shareid),
+                                   delete_path: &game_path(@conn, :delete, &1) %>
+    </div>
+  </div>
 </div>
