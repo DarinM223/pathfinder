@@ -1,6 +1,6 @@
 # Pathfinder
 
-**TODO: Add description**
+Contains the main game logic and the backend OTP game server.
 
 ## Installation
 
