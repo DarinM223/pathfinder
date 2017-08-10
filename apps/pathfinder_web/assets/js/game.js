@@ -77,7 +77,11 @@ export class Game {
 
   @action onNextState(state) {
     if (state[0] === 'build') {
-      this.playerBoard.transition(PLACE_WALL);
+      if (state[1] === null || state[1] != this.playerId) {
+        this.playerBoard.transition(PLACE_WALL);
+      } else {
+        this.playerBoard.transition(NO_STATE);
+      }
     } else if (state[0] === 'win') {
       if (state[1] == this.playerId) {
         this.won = true;
@@ -182,15 +186,15 @@ const buttonStyle = {
 export class GameView extends Component {
   render() {
     const game = this.props.game;
-
     const playerBoard = game.playerBoard;
-    let switchButton = null;
+
     let buildButton = (
       <button className="btn btn-success" onClick={e => game.build()}>
         Validate
       </button>
     );
-    let stateText = '';
+
+    let switchButton = null;
     switch (playerBoard.state.type) {
       case PLACE_GOAL:
         switchButton = (
@@ -217,6 +221,15 @@ export class GameView extends Component {
         break;
     }
 
+    let shareButton = null;
+    if (game.shareId !== null && game.shareId.trim().length > 0) {
+      shareButton = (
+        <CopyToClipboard text={game.shareId}>
+          <button style={buttonStyle} className="btn btn-info">Copy share url</button>
+        </CopyToClipboard>
+      );
+    }
+
     return (
       <div>
         <div className="container center-block">
@@ -240,9 +253,7 @@ export class GameView extends Component {
                 removePlayer={row => game.removePlayer(row)}
               />
               <br />
-              <CopyToClipboard text={game.shareId}>
-                <button style={buttonStyle} className="btn btn-info">Copy share url</button>
-              </CopyToClipboard>
+              {shareButton}
             </div>
             <div className="col-md-2" />
           </div>
