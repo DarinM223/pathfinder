@@ -13,7 +13,13 @@ import {
 } from './board/data.js';
 import { BoardView } from './board/view.js';
 import { GameTextView } from './text.js';
-import CopyToClipboard from 'react-copy-to-clipboard';
+import {
+  switchButton,
+  boardStatus,
+  shareButton,
+  buildButton,
+  buildModal
+} from './controls.js';
 
 export class Game {
   @observable playerBoard;
@@ -177,58 +183,11 @@ export class Game {
   }
 }
 
-const buttonStyle = {
-  marginLeft: '10px',
-  marginRight: '5px'
-};
-
 @observer
 export class GameView extends Component {
   render() {
     const game = this.props.game;
     const playerBoard = game.playerBoard;
-
-    let buildButton = (
-      <button className="btn btn-success" onClick={e => game.build()}>
-        Validate
-      </button>
-    );
-
-    let switchButton = null;
-    switch (playerBoard.state.type) {
-      case PLACE_GOAL:
-        switchButton = (
-          <button
-            style={buttonStyle}
-            className="btn btn-info"
-            onClick={e => playerBoard.transition(PLACE_WALL)}>
-            Placing goal
-          </button>
-        );
-        break;
-      case PLACE_WALL:
-        switchButton = (
-          <button
-            style={buttonStyle}
-            className="btn btn-info"
-            onClick={e => playerBoard.transition(PLACE_GOAL)}>
-            Placing walls
-          </button>
-        );
-        break;
-      default:
-        buildButton = null;
-        break;
-    }
-
-    let shareButton = null;
-    if (game.shareId !== null && game.shareId.trim().length > 0) {
-      shareButton = (
-        <CopyToClipboard text={game.shareId}>
-          <button style={buttonStyle} className="btn btn-info">Copy share url</button>
-        </CopyToClipboard>
-      );
-    }
 
     return (
       <div>
@@ -239,24 +198,25 @@ export class GameView extends Component {
           <div className="row">
             <div className="col-md-2" />
             <div className="col-md-4">
-              <h3>Your board</h3>
+              <h3>Your board {boardStatus(playerBoard)}</h3>
               <BoardView board={playerBoard} />
               <br />
-              {switchButton}
-              {buildButton}
+              {switchButton(playerBoard)}
+              {buildButton(playerBoard)}
             </div>
             <div className="col-md-4">
-              <h3>Other player's board</h3>
+              <h3>{"Other player's board"}</h3>
               <BoardView board={game.enemyBoard}
                 movePlayer={direction => game.movePlayer(direction)}
                 placePlayer={row => game.placePlayer(row)}
                 removePlayer={row => game.removePlayer(row)}
               />
               <br />
-              {shareButton}
+              {shareButton(game)}
             </div>
             <div className="col-md-2" />
           </div>
+          {buildModal(e => game.build())}
         </div>
       </div>
     );

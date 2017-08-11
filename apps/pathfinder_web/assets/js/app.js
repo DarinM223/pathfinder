@@ -12,12 +12,15 @@
 // If you no longer want to use a dependency, remember
 // to also remove its path from "config.paths.watched".
 import 'phoenix_html'
+import 'jquery'
 
 // Import local files
 //
 // Local files can be imported directly using relative
 // paths "./socket" or full ones "web/static/js/socket".
 
+global.jQuery = require('jquery');
+global.bootstrap = require('bootstrap');
 
 import React, { Component, PropTypes } from 'react';
 import ReactDOM from 'react-dom';

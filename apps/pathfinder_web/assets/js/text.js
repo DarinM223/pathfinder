@@ -19,12 +19,12 @@ const styles = {
 
 const PLACE_WALL_TEXT = (
   <div>
-    <h2 style={styles.centerText}>Building maze:</h2>
+    <h2 style={styles.centerText}>Building Maze</h2>
     <div style={styles.centerText}>
       <ul style={styles.centerList}>
         <li style={styles.listItem}>Click on two adjacent cells to place/remove a wall between them.</li>
         <li style={styles.listItem}>Double-click a cell in the first column to place/remove a row wall.</li>
-        <li style={styles.listItem}>{"Click the 'Placing walls' button to switch to placing the goal."}</li>
+        <li style={styles.listItem}>{"Click the 'Place goal' button to switch to placing the goal."}</li>
         <li style={styles.listItem}>{"Click the 'Validate' button when you are finished making the maze."}</li>
       </ul>
     </div>
@@ -32,11 +32,11 @@ const PLACE_WALL_TEXT = (
 );
 const PLACE_GOAL_TEXT = (
   <div>
-    <h2 style={styles.centerText}>Building maze:</h2>
+    <h2 style={styles.centerText}>Building Maze</h2>
     <div style={styles.centerText}>
       <ul style={styles.centerList}>
         <li style={styles.listItem}>Click on a cell in the board to place the goal on the cell.</li>
-        <li style={styles.listItem}>{"Click the 'Placing goal' button to switch to placing the walls."}</li>
+        <li style={styles.listItem}>{"Click the 'Place walls' button to switch to placing the walls."}</li>
         <li style={styles.listItem}>{"Click the 'Validate' when you are finished making the maze."}</li>
       </ul>
     </div>
@@ -44,7 +44,7 @@ const PLACE_GOAL_TEXT = (
 );
 const MOVE_PLAYER_TEXT = (
   <div>
-    <h2 style={styles.centerText}>Your turn:</h2>
+    <h2 style={styles.centerText}>Your Turn</h2>
     <div style={styles.centerText}>
       <ul style={styles.centerList}>
         <li style={styles.listItem}>Click on one of the highlighted cells adjacent to the player to attempt to move there.</li>
@@ -55,7 +55,7 @@ const MOVE_PLAYER_TEXT = (
 );
 const PLACE_PLAYER_TEXT = (
   <div>
-    <h2 style={styles.centerText}>Your turn:</h2>
+    <h2 style={styles.centerText}>Your Turn</h2>
     <div style={styles.centerText}>
       <ul style={styles.centerList}>
         <li style={styles.listItem}>Click on one of the highlighted cells to attempt to place the player there.</li>
