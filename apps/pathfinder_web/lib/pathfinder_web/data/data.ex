@@ -4,14 +4,24 @@ defmodule PathfinderWeb.Data do
   alias PathfinderWeb.Data.Game
   import Ecto.Query
 
+  @list_users_limit 100
+
   def list_user_created_games(%User{} = user) do
-    user
-    |> Ecto.assoc(:games)
-    |> Repo.all()
+    Repo.all(
+      from g in Ecto.assoc(user, :games),
+        order_by: [desc: g.inserted_at],
+        limit: @list_users_limit
+    )
   end
 
   def list_user_participating_games(%User{} = user) do
-    Repo.all(from g in Game, where: g.other_user_id == ^user.id)
+    Repo.all(
+      from g in Game,
+        where: g.other_user_id == ^user.id,
+        order_by: [desc: g.inserted_at],
+        limit: @list_users_limit,
+        preload: [:user]
+    )
   end
 
   def get_shared_game!(shareid) do

@@ -6,9 +6,7 @@ defmodule PathfinderWeb.Web.GameController do
 
   def index(conn, _, user) do
     created_games = Data.list_user_created_games(user)
-    participating_games =
-      Data.list_user_participating_games(user)
-      |> Enum.map(&Repo.preload(&1, :user))
+    participating_games = Data.list_user_participating_games(user)
 
     render conn, "index.html",
       created_games: created_games,
