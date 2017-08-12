@@ -14,7 +14,8 @@ import {
   PLACE_PLAYER,
   PLACE_GOAL,
   MOVE_PLAYER,
-  directionBetweenCells
+  directionBetweenCells,
+  storageId
 } from './data.js';
 
 const styles = {
@@ -87,9 +88,11 @@ export class BoardView extends Component {
     switch (this.props.board.state.type) {
       case PLACE_WALL:
         this.props.board.placeWall(row, col);
+        localStorage.setItem(storageId(this.props.gameId), JSON.stringify(this.props.board));
         break;
       case PLACE_GOAL:
         this.props.board.placeGoal(row, col);
+        localStorage.setItem(storageId(this.props.gameId), JSON.stringify(this.props.board));
         break;
       case MOVE_PLAYER:
         if (this.props.board.player[0] === row &&

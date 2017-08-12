@@ -87,6 +87,13 @@ export class Board {
     return walls;
   }
 
+  @action loadFromJSON(board) {
+    this.player = board.player;
+    this.goal = board.goal;
+    this.cells = board.cells;
+    this.state = board.state;
+  }
+
   @action loadFromBackend(board) {
     this.player = board.player;
     this.goal = board.goal;
@@ -305,6 +312,10 @@ export function reverse(direction) {
     case LEFT:
       return RIGHT;
   }
+}
+
+export function storageId(gameId) {
+  return `${gameId}_board`;
 }
 
 function makeCells() {

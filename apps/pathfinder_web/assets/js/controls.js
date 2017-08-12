@@ -5,14 +5,25 @@ import {
   PLACE_GOAL
 } from './board/data.js';
 
-const buttonStyle = {
-  marginLeft: '10px',
-  marginRight: '5px'
+const styles = {
+  alignedToBoard: {
+    marginLeft: '10px',
+    marginRight: '5px'
+  },
+  middleButton: {
+    marginLeft: '0px',
+    marginRight: '5px'
+  }
 };
 
 const buildButtonOpts = {
   "data-toggle": "modal",
   "data-target": "#validateModal"
+};
+
+const clearButtonOpts = {
+  "data-toggle": "modal",
+  "data-target": "#clearModal"
 };
 
 const dismissButtonOpts = {
@@ -24,7 +35,7 @@ export const switchButton = (board) => {
     case PLACE_GOAL:
       return (
         <button
-          style={buttonStyle}
+          style={styles.alignedToBoard}
           className="btn btn-info"
           onClick={e => board.transition(PLACE_WALL)}>
           Place walls
@@ -33,7 +44,7 @@ export const switchButton = (board) => {
     case PLACE_WALL:
       return (
         <button
-          style={buttonStyle}
+          style={styles.alignedToBoard}
           className="btn btn-info"
           onClick={e => board.transition(PLACE_GOAL)}>
           Place goal
@@ -59,7 +70,7 @@ export const shareButton = (game) => {
   if (game.shareId !== null && game.shareId.trim().length > 0) {
     return (
       <CopyToClipboard text={game.shareId}>
-        <button style={buttonStyle} className="btn btn-info">Copy share url</button>
+        <button style={styles.alignedToBoard} className="btn btn-info">Copy share url</button>
       </CopyToClipboard>
     );
   }
@@ -77,6 +88,44 @@ export const buildButton = (board) => {
   }
   return null;
 };
+
+export const clearButton = (board) => {
+  if (board.state.type === PLACE_GOAL ||
+      board.state.type === PLACE_WALL) {
+    return (
+      <button style={styles.middleButton} className="btn btn-danger" {...clearButtonOpts}>
+        Clear board
+      </button>
+    );
+  }
+};
+
+export const clearModal = (clearFn) => (
+  <div id="clearModal" className="modal fade" role="dialog">
+    <div className="modal-dialog">
+      <div className="modal-content">
+        <div className="modal-body">
+          <p>Are you are sure you want to remove all changes you made to the maze?</p>
+        </div>
+        <div className="modal-footer">
+          <button
+            type="button"
+            className="btn btn-success"
+            onClick={clearFn}
+            {...dismissButtonOpts}>
+            Yes
+          </button>
+          <button
+            type="button"
+            className="btn btn-info"
+            {...dismissButtonOpts}>
+            No
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 export const buildModal = (buildFn) => (
   <div id="validateModal" className="modal fade" role="dialog">

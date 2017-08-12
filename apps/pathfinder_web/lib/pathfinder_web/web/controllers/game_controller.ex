@@ -28,7 +28,10 @@ defmodule PathfinderWeb.Web.GameController do
         |> put_flash(:info, "Game created successfully")
         |> redirect(to: game_path(conn, :index))
       {:error, changeset} ->
-        render conn, "new.html", changeset: changeset
+        recent_other_usernames = Data.list_recent_other_usernames(user)
+        render conn, "new.html",
+          changeset: changeset,
+          recent_other_usernames: recent_other_usernames
     end
   end
 

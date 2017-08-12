@@ -9,7 +9,8 @@ import {
   MOVE_PLAYER,
   PLACE_PLAYER,
   NO_STATE,
-  next
+  next,
+  storageId
 } from './board/data.js';
 import { BoardView } from './board/view.js';
 import { GameTextView } from './text.js';
@@ -18,7 +19,9 @@ import {
   boardStatus,
   shareButton,
   buildButton,
-  buildModal
+  clearButton,
+  buildModal,
+  clearModal
 } from './controls.js';
 
 export class Game {
@@ -70,7 +73,12 @@ export class Game {
     this.gamesChannel.join()
       .receive('ok', (player) => {
         if (player !== null) {
-          this.playerBoard.loadFromBackend(player.board);
+          const board = JSON.parse(localStorage.getItem(storageId(this.gameId)));
+          if (player.state[0] === 'build' && typeof board !== 'undefined' && board !== null) {
+            this.playerBoard.loadFromJSON(board);
+          } else {
+            this.playerBoard.loadFromBackend(player.board);
+          }
           this.enemyBoard.loadFromBackend(player.enemy_board);
 
           this.onNextState(player.state);
@@ -79,6 +87,13 @@ export class Game {
         }
       })
       .receive('error', (reason) => console.log('join failed', reason));
+  }
+
+  @action clear() {
+    localStorage.removeItem(storageId(this.gameId));
+    const state = this.playerBoard.state;
+    this.playerBoard = new Board();
+    this.playerBoard.state = state;
   }
 
   @action onNextState(state) {
@@ -199,9 +214,10 @@ export class GameView extends Component {
             <div className="col-md-2" />
             <div className="col-md-4">
               <h3>Your board {boardStatus(playerBoard)}</h3>
-              <BoardView board={playerBoard} />
+              <BoardView board={playerBoard} gameId={game.gameId} />
               <br />
               {switchButton(playerBoard)}
+              {clearButton(playerBoard)}
               {buildButton(playerBoard)}
             </div>
             <div className="col-md-4">
@@ -210,6 +226,7 @@ export class GameView extends Component {
                 movePlayer={direction => game.movePlayer(direction)}
                 placePlayer={row => game.placePlayer(row)}
                 removePlayer={row => game.removePlayer(row)}
+                game={game.gameId}
               />
               <br />
               {shareButton(game)}
@@ -217,6 +234,7 @@ export class GameView extends Component {
             <div className="col-md-2" />
           </div>
           {buildModal(e => game.build())}
+          {clearModal(e => game.clear())}
         </div>
       </div>
     );

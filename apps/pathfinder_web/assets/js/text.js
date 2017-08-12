@@ -25,6 +25,7 @@ const PLACE_WALL_TEXT = (
         <li style={styles.listItem}>Click on two adjacent cells to place/remove a wall between them.</li>
         <li style={styles.listItem}>Double-click a cell in the first column to place/remove a row wall.</li>
         <li style={styles.listItem}>{"Click the 'Place goal' button to switch to placing the goal."}</li>
+        <li style={styles.listItem}>{"Click the 'Clear board' button to reset the board."}</li>
         <li style={styles.listItem}>{"Click the 'Validate' button when you are finished making the maze."}</li>
       </ul>
     </div>
@@ -37,6 +38,7 @@ const PLACE_GOAL_TEXT = (
       <ul style={styles.centerList}>
         <li style={styles.listItem}>Click on a cell in the board to place the goal on the cell.</li>
         <li style={styles.listItem}>{"Click the 'Place walls' button to switch to placing the walls."}</li>
+        <li style={styles.listItem}>{"Click the 'Clear board' button to reset the board."}</li>
         <li style={styles.listItem}>{"Click the 'Validate' when you are finished making the maze."}</li>
       </ul>
     </div>
