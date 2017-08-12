@@ -2,7 +2,6 @@ defmodule PathfinderWeb.Web.GameController do
   use PathfinderWeb.Web, :controller
 
   alias PathfinderWeb.Data
-  alias PathfinderWeb.Repo
 
   def index(conn, _, user) do
     created_games = Data.list_user_created_games(user)
@@ -44,12 +43,36 @@ defmodule PathfinderWeb.Web.GameController do
     if game.user_id == user.id or game.other_user_id == user.id do
       {:ok, _} = Data.delete_game(game)
       conn
-      |> put_flash(:info, "Video deleted successfully")
+      |> put_flash(:info, "Game deleted successfully")
       |> redirect(to: game_path(conn, :index))
     else
       conn
       |> put_flash(:error, "Invalid game id")
       |> redirect(to: game_path(conn, :index))
+    end
+  end
+
+  def finish(conn, %{"id" => id}, user) do
+    game = Data.get_game!(id)
+    result =
+      cond do
+        user.id == game.user_id ->
+          Data.update_game(game, %{winner: game.other_user_id})
+        user.id == game.other_user_id ->
+          Data.update_game(game, %{winner: game.user_id})
+        true ->
+          :error
+      end
+
+    with {:ok, _} <- result do
+      conn
+      |> put_flash(:info, "Game forfeited successfully")
+      |> redirect(to: game_path(conn, :index))
+    else
+      _ ->
+        conn
+        |> put_flash(:error, "Invalid game id")
+        |> redirect(to: game_path(conn, :index))
     end
   end
 

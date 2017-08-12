@@ -1,8 +1,6 @@
 defmodule PathfinderWeb.Web.PlayerView do
   use PathfinderWeb.Web, :view
 
-  alias Pathfinder.Player
-
   def render("player.json", %{id: id, player: player, state: state}) do
     state = Tuple.to_list(state)
 

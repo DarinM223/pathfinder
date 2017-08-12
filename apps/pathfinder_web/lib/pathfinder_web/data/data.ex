@@ -10,6 +10,7 @@ defmodule PathfinderWeb.Data do
   def list_user_created_games(%User{} = user) do
     Repo.all(
       from g in Ecto.assoc(user, :games),
+        where: is_nil(g.winner),
         order_by: [desc: g.inserted_at],
         limit: @list_users_limit
     )
@@ -18,7 +19,7 @@ defmodule PathfinderWeb.Data do
   def list_user_participating_games(%User{} = user) do
     Repo.all(
       from g in Game,
-        where: g.other_user_id == ^user.id,
+        where: g.other_user_id == ^user.id and is_nil(g.winner),
         order_by: [desc: g.inserted_at],
         limit: @list_users_limit,
         preload: [:user]

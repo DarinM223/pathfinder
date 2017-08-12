@@ -61,10 +61,16 @@ defmodule PathfinderWeb.Web.GameChannel do
   def handle_in("turn", %{"action" => action}, game_id, user_id, socket) do
     converted_action = convert_action(action)
     case Pathfinder.turn(game_id, user_id, converted_action) do
-      {:win, _} ->
+      {:win, user_id} ->
         game = Pathfinder.state(game_id)
 
         broadcast! socket, "next", %{changes: [action], state: Tuple.to_list(game.state)}
+        # Update game winner in database.
+        {:ok, _} =
+          game_id
+          |> elem(1)
+          |> Data.get_game!()
+          |> Data.update_game(%{winner: user_id})
         {:reply, :ok, socket}
       {:turn, _} ->
         game = Pathfinder.state(game_id)

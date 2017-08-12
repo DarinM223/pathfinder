@@ -11,6 +11,7 @@ defmodule PathfinderWeb.Data.Game do
     field :other_user_id, :integer
     field :shareid, :string
     field :accessed, :boolean
+    field :winner, :integer
     field :other_user_name, :string
     field :other_user_type, :string, virtual: true
 
@@ -20,13 +21,12 @@ defmodule PathfinderWeb.Data.Game do
   @doc false
   def changeset(%Game{} = game, attrs) do
     game
-    |> cast(attrs, [:accessed])
+    |> cast(attrs, [:accessed, :winner])
     |> validate_required([])
   end
 
   def create_changeset(%Game{} = game, user_id, attrs) do
     game
-    |> changeset(attrs)
     |> cast(attrs, [:other_user_type, :other_user_name])
     |> validate_required([:other_user_type, :other_user_name])
     |> validate_length(:other_user_name, min: 1, max: 20)

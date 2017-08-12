@@ -12,7 +12,7 @@ defmodule PathfinderWeb.Web.UserController do
     render conn, "show.html", user: user
   end
 
-  def new(conn, params) do
+  def new(conn, _params) do
     changeset = Accounts.change_user(%Accounts.User{})
 
     render conn, "new.html", changeset: changeset

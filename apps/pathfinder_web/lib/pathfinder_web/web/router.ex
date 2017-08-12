@@ -27,6 +27,7 @@ defmodule PathfinderWeb.Web.Router do
     pipe_through [:browser, :authenticate_user]
 
     resources "/games", GameController, only: [:new, :index, :create, :show, :delete]
+    post "/games/:id/finish", GameController, :finish
   end
 
   # Other scopes may use custom stacks.

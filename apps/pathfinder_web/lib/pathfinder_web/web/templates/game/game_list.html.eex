@@ -8,9 +8,9 @@
     <%= for game <- @games do %>
       <tr>
         <td><%= link Map.get(@game_names, game.id), to: @path.(game) %></td>
-        <%= if path = @delete_path.(game) do %>
+        <%= if path = @finish_path.(game) do %>
           <td class="text-right">
-            <%= link "Delete", to: path, class: "btn btn-danger", method: :delete %>
+            <%= link "Forfeit", to: path, class: "btn btn-danger", method: :post %>
           </td>
         <% end %>
       </tr>
