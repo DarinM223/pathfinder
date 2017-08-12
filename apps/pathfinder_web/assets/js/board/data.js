@@ -144,7 +144,7 @@ export class Board {
         return;
       case MOVE_PLAYER:
         const [row, col] = this.player;
-        this.toggleHighlight(row, col);
+        this.toggleHighlight(row, col, false);
         break;
       case PLACE_PLAYER:
         for (let row = 0; row < 6; row++) {
@@ -210,11 +210,16 @@ export class Board {
     }
   }
 
-  @action toggleHighlight(row, col) {
+  @action toggleHighlight(row, col, goThroughWalls = true) {
     this.cells[row][col].highlight =
       this.cells[row][col].highlight ? null : SELECTED_HIGHLIGHT;
 
     for (let direction = TOP; direction <= LEFT; direction++) {
+      if (goThroughWalls === false &&
+          this.cells[row][col].walls[direction] === true) {
+        continue;
+      }
+
       const [nextRow, nextCol] = next(row, col, direction);
       if (isValidCell(nextRow, nextCol)) {
         this.cells[nextRow][nextCol].highlight =

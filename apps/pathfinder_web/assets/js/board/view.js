@@ -85,6 +85,7 @@ export class CellView extends Component {
 @observer
 export class BoardView extends Component {
   onCellClick(row, col) {
+    const player = this.props.board.player;
     switch (this.props.board.state.type) {
       case PLACE_WALL:
         this.props.board.placeWall(row, col);
@@ -95,13 +96,12 @@ export class BoardView extends Component {
         localStorage.setItem(storageId(this.props.gameId), JSON.stringify(this.props.board));
         break;
       case MOVE_PLAYER:
-        if (this.props.board.player[0] === row &&
-            this.props.board.player[1] === col &&
-            col === 0) {
+        if (player[0] === row && player[1] === col && col === 0) {
           this.props.removePlayer(row);
         } else {
           const direction = directionBetweenCells(this.props.board.player, [row, col]);
-          if (direction !== null) {
+          if (direction !== null &&
+              this.props.board.cells[player[0]][player[1]].walls[direction] === false) {
             this.props.movePlayer(direction);
           }
         }
