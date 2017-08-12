@@ -5,6 +5,7 @@ defmodule PathfinderWeb.Data do
   import Ecto.Query
 
   @list_users_limit 100
+  @other_users_limit 10
 
   def list_user_created_games(%User{} = user) do
     Repo.all(
@@ -21,6 +22,20 @@ defmodule PathfinderWeb.Data do
         order_by: [desc: g.inserted_at],
         limit: @list_users_limit,
         preload: [:user]
+    )
+  end
+
+  def list_recent_other_usernames(%User{} = user) do
+    other_user_games =
+      from g in Ecto.assoc(user, :games),
+        distinct: g.other_user_name,
+        order_by: [desc: g.inserted_at]
+
+    Repo.all(
+      from g in subquery(other_user_games),
+        select: g.other_user_name,
+        order_by: [desc: g.inserted_at],
+        limit: @other_users_limit
     )
   end
 

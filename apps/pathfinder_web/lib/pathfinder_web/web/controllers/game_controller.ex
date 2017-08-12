@@ -13,10 +13,13 @@ defmodule PathfinderWeb.Web.GameController do
       participating_games: participating_games
   end
 
-  def new(conn, _params, _user) do
+  def new(conn, _params, user) do
     changeset = Data.change_game()
+    recent_other_usernames = Data.list_recent_other_usernames(user)
 
-    render conn, "new.html", changeset: changeset
+    render conn, "new.html",
+      changeset: changeset,
+      recent_other_usernames: recent_other_usernames
   end
 
   def create(conn, %{"game" => game_params}, user) do
