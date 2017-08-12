@@ -9,6 +9,7 @@ import {
   MOVE_PLAYER,
   PLACE_PLAYER,
   NO_STATE,
+  WON_STATE,
   next,
   storageId
 } from './board/data.js';
@@ -106,11 +107,13 @@ export class Game {
     } else if (state[0] === 'win') {
       if (state[1] == this.playerId) {
         this.won = true;
+        this.enemyBoard.transition(WON_STATE);
+        this.playerBoard.transition(NO_STATE);
       } else {
         this.won = false;
+        this.enemyBoard.transition(NO_STATE);
+        this.playerBoard.transition(WON_STATE);
       }
-      this.playerBoard.transition(NO_STATE);
-      this.enemyBoard.transition(NO_STATE);
     } else if (state[0] === 'turn' && state[1] == this.playerId) {
       if (this.enemyBoard.player === null) {
         this.enemyBoard.transition(PLACE_PLAYER);

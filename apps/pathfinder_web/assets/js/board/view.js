@@ -10,6 +10,7 @@ import {
   MARKER,
   SELECTED_HIGHLIGHT,
   HINT_HIGHLIGHT,
+  SUCCESS_HIGHLIGHT,
   PLACE_WALL,
   PLACE_PLAYER,
   PLACE_GOAL,
@@ -60,6 +61,9 @@ export class CellView extends Component {
 
     let backgroundColor = null;
     switch (this.props.cell.highlight) {
+      case SUCCESS_HIGHLIGHT:
+        backgroundColor = '#87CEFA';
+        break;
       case SELECTED_HIGHLIGHT:
         backgroundColor = '#FFA500';
         break;

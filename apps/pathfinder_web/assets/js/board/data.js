@@ -11,6 +11,7 @@ export const LEFT = 3;
 /*
  * Cell highlight types.
  */
+export const SUCCESS_HIGHLIGHT = 'SUCCESS_HIGHLIGHT';
 export const SELECTED_HIGHLIGHT = 'INFO_HIGHLIGHT';
 export const HINT_HIGHLIGHT = 'HINT_HIGHLIGHT';
 
@@ -34,6 +35,7 @@ export const PLACE_WALL = 'PLACE_WALL';
 export const PLACE_GOAL = 'PLACE_GOAL';
 export const MOVE_PLAYER = 'MOVE_PLAYER';
 export const PLACE_PLAYER = 'PLACE_PLAYER';
+export const WON_STATE = 'WON_STATE';
 
 export class Board {
   @observable cells = makeCells();
@@ -56,6 +58,9 @@ export class Board {
    *
    * Place player:
    * { type: 'PLACE_PLAYER' }
+   *
+   * Won:
+   * { type: 'WON_STATE' }
    */
   @observable state = { type: NO_STATE };
 
@@ -138,18 +143,23 @@ export class Board {
     // Clear highlights from the grid.
     this.clearGrid();
 
+    let row = null, col = null;
     switch (state) {
       case PLACE_WALL:
         this.state = { type: state, firstCell: null };
         return;
       case MOVE_PLAYER:
-        const [row, col] = this.player;
+        ;[row, col] = this.player;
         this.toggleHighlight(row, col, false);
         break;
       case PLACE_PLAYER:
         for (let row = 0; row < 6; row++) {
           this.cells[row][0].highlight = HINT_HIGHLIGHT;
         }
+        break;
+      case WON_STATE:
+        ;[row, col] = this.player;
+        this.cells[row][col].highlight = SUCCESS_HIGHLIGHT;
         break;
     }
     this.state = { type: state };
