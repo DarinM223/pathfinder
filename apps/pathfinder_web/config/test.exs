@@ -17,3 +17,5 @@ config :pathfinder_web, PathfinderWeb.Repo,
   database: "pathfinder_web_test",
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox
+
+config :comeonin, [bcrypt_log_rounds: 4, pbkdf5_rounds: 1]

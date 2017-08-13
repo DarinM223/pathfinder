@@ -44,11 +44,12 @@ defmodule PathfinderWeb.Accounts.User do
     end
   end
 
-  defp validate_password_confirm(%{changes: changes} = changeset) do
+  defp validate_password_confirm(%{changes: changes, valid?: true} = changeset) do
     password = changes[:password]
     case changes[:password_confirm] do
       ^password -> changeset
       _ -> add_error(changeset, :password_confirm, "must match password")
     end
   end
+  defp validate_password_confirm(changeset), do: changeset
 end

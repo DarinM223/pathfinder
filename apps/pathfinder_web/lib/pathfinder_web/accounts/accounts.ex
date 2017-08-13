@@ -2,11 +2,11 @@ defmodule PathfinderWeb.Accounts do
   alias PathfinderWeb.Repo
   alias PathfinderWeb.Accounts.User
 
-  def get_user!(id, repo \\ Repo) do
+  def get_user(id, repo \\ Repo) do
     repo.get(User, id)
   end
 
-  def get_user_by_username!(username, repo \\ Repo) do
+  def get_user_by_username(username, repo \\ Repo) do
     repo.get_by(User, username: username)
   end
 

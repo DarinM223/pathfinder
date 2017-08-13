@@ -22,6 +22,7 @@ defmodule PathfinderWeb.DataCase do
       import Ecto.Changeset
       import Ecto.Query
       import PathfinderWeb.DataCase
+      import PathfinderWeb.TestHelpers
     end
   end
 

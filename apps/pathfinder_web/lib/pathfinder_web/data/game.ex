@@ -10,8 +10,8 @@ defmodule PathfinderWeb.Data.Game do
     belongs_to :user, PathfinderWeb.Accounts.User
     field :other_user_id, :integer
     field :shareid, :string
-    field :accessed, :boolean
-    field :winner, :integer
+    field :accessed, :boolean, default: false
+    field :winner, :integer, default: nil
     field :other_user_name, :string
     field :other_user_type, :string, virtual: true
 
@@ -52,7 +52,9 @@ defmodule PathfinderWeb.Data.Game do
           |> put_change(:other_user_name, user.username)
         end
       "nonexisting" ->
-        changeset
+        put_change(changeset, :other_user_id, -1)
+      _ ->
+        add_error(changeset, :other_user_type, "must be a valid type")
     end
   end
   defp validate_other_user_name(changeset), do: changeset

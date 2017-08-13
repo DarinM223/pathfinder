@@ -15,7 +15,7 @@ defmodule PathfinderWeb.Web.Auth do
     cond do
       user = conn.assigns[:current_user] ->
         put_current_user(conn, user)
-      user = user_id && Accounts.get_user!(user_id, repo) ->
+      user = user_id && Accounts.get_user(user_id, repo) ->
         put_current_user(conn, user)
       true ->
         assign(conn, :current_user, nil)
@@ -31,7 +31,7 @@ defmodule PathfinderWeb.Web.Auth do
 
   def login_with_password(conn, username, password, opts) do
     repo = Keyword.fetch!(opts, :repo)
-    user = Accounts.get_user_by_username!(username)
+    user = Accounts.get_user_by_username(username)
 
     cond do
       user && checkpw(password, user.password_hash) ->
