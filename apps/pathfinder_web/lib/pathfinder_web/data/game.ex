@@ -23,6 +23,7 @@ defmodule PathfinderWeb.Data.Game do
     game
     |> cast(attrs, [:accessed, :winner])
     |> validate_required([])
+    |> validate_winner()
   end
 
   def create_changeset(%Game{} = game, user_id, attrs) do
@@ -34,6 +35,18 @@ defmodule PathfinderWeb.Data.Game do
     |> validate_different_ids(user_id)
     |> put_change(:shareid, Ecto.UUID.generate())
   end
+
+  # Validates that the winner is one of the players in the game.
+  defp validate_winner(%{changes: changes, data: data, valid?: true} = changeset) do
+    if changes[:winner] == data.user_id or
+       changes[:winner] == data.other_user_id or
+       changes[:winner] == nil do
+      changeset
+    else
+      add_error(changeset, :winner, "must be a player in the game")
+    end
+  end
+  defp validate_winner(changeset), do: changeset
 
   # Validates that if it is an existing user,
   # the user with that name exists in the database.

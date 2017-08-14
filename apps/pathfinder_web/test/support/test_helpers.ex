@@ -14,6 +14,10 @@ defmodule PathfinderWeb.TestHelpers do
   end
 
   def insert_game(user, attrs \\ %{}) do
-    Data.create_user_game(user, attrs)
+    changes = Map.merge(%{
+      other_user_name: Base.encode16(:crypto.strong_rand_bytes(8)),
+      other_user_type: "nonexisting"
+    }, attrs)
+    Data.create_user_game(user, changes)
   end
 end
