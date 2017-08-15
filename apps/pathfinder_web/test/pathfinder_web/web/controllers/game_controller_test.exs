@@ -148,10 +148,12 @@ defmodule PathfinderWeb.Web.GameControllerTest do
     next_conn = post conn, game_path(conn, :finish, game1.id)
     assert redirected_to(next_conn) == game_path(conn, :index)
     assert get_flash(next_conn, :info) == "Game forfeited successfully"
+    assert Data.get_user_game!(other, game1.id).winner == other.id
 
     next_conn = post conn, game_path(conn, :finish, game2.id)
     assert redirected_to(next_conn) == game_path(conn, :index)
     assert get_flash(next_conn, :info) == "Game forfeited successfully"
+    assert Data.get_user_game!(user, game2.id).winner == other.id
   end
 
   @tag login_as: "bob"
