@@ -41,7 +41,7 @@ defmodule PathfinderWeb.Web.GameChannelTest do
 
   test "sends nothing back on first join and sends player state on the next joins", %{user: user, game: game, socket: socket} do
     {:ok, nil, next_socket} = subscribe_and_join(socket, "games:#{game.id}", %{})
-    assert next_socket.assigns.game_id != nil
+    assert next_socket.assigns.worker_id != nil
 
     {:ok, state, _} = subscribe_and_join(socket, "games:#{game.id}", %{})
     assert state.id == user.id

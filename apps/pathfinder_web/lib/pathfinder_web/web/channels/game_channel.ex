@@ -10,8 +10,12 @@ defmodule PathfinderWeb.Web.GameChannel do
     user_id = socket.assigns.user_id
 
     if is_valid_user?(game, user_id) do
-      handle_user_join(Pathfinder.full_game_id(game_id),
-                       game, user_id, socket)
+      handle_user_join(
+        Pathfinder.worker_id(game_id),
+        game,
+        user_id,
+        socket
+      )
     else
       {:error, "User is not a player in this game"}
     end
@@ -21,35 +25,40 @@ defmodule PathfinderWeb.Web.GameChannel do
     user_id == game.user_id or user_id == game.other_user_id
   end
 
+  # Create new worker if one doesn't exist.
   defp handle_user_join(nil, game, _, socket) do
     {:ok, id} = Pathfinder.add(game.id, game.user_id, game.other_user_id)
-    {:ok, nil, assign(socket, :game_id, id)}
+    {:ok, nil, assign(socket, :worker_id, id)}
   end
+  # If worker exists, reply with serialized player state.
   defp handle_user_join(worker_id, _, user_id, socket) do
-    game = Pathfinder.state(worker_id)
-    player = get_in(game, [:players, user_id])
+    worker_state = Pathfinder.state(worker_id)
+    player = get_in(worker_state, [:players, user_id])
     rendered_player = Phoenix.View.render(PlayerView, "player.json", %{
       id: user_id,
       player: player,
-      state: game.state,
+      state: worker_state.state,
     })
 
-    {:ok, rendered_player, assign(socket, :game_id, worker_id)}
+    {:ok, rendered_player, assign(socket, :worker_id, worker_id)}
   end
 
   def handle_in(action, params, socket) do
-    game_id = socket.assigns.game_id
+    worker_id = socket.assigns.worker_id
     user_id = socket.assigns.user_id
-    handle_in(action, params, game_id, user_id, socket)
+    handle_in(action, params, worker_id, user_id, socket)
   end
 
-  def handle_in("build", %{"changes" => changes}, game_id, user_id, socket) do
+  def handle_in("build", %{"changes" => changes}, worker_id, user_id, socket) do
     changes = Enum.map(changes, &convert_action/1)
-    case Pathfinder.build(game_id, user_id, changes) do
+    case Pathfinder.build(worker_id, user_id, changes) do
       {:turn, _} ->
-        game = Pathfinder.state(game_id)
+        worker_state = Pathfinder.state(worker_id)
+        broadcast! socket, "next", %{
+          changes: [],
+          state: Tuple.to_list(worker_state.state)
+        }
 
-        broadcast! socket, "next", %{changes: [], state: Tuple.to_list(game.state)}
         {:reply, :ok, socket}
       :ok ->
         {:reply, :ok, socket}
@@ -58,31 +67,43 @@ defmodule PathfinderWeb.Web.GameChannel do
     end
   end
 
-  def handle_in("turn", %{"action" => action}, game_id, user_id, socket) do
+  def handle_in("turn", %{"action" => action}, worker_id, user_id, socket) do
     converted_action = convert_action(action)
-    case Pathfinder.turn(game_id, user_id, converted_action) do
-      {:win, user_id} ->
-        game = Pathfinder.state(game_id)
+    turn_result = Pathfinder.turn(worker_id, user_id, converted_action)
+    worker_state = Pathfinder.state(worker_id)
 
-        broadcast! socket, "next", %{changes: [action], state: Tuple.to_list(game.state)}
-        # Update game winner in database.
-        {:ok, _} =
-          game_id
-          |> elem(1)
-          |> Data.get_game!()
-          |> Data.update_game(%{winner: user_id})
+    case turn_result do
+      {:win, user_id} ->
+        broadcast! socket, "next", %{
+          changes: [action],
+          state: Tuple.to_list(worker_state.state)
+        }
+
+        handle_win(worker_id, user_id)
         {:reply, :ok, socket}
       {:turn, _} ->
-        game = Pathfinder.state(game_id)
+        broadcast! socket, "next", %{
+          changes: [action],
+          state: Tuple.to_list(worker_state.state)
+        }
 
-        broadcast! socket, "next", %{changes: [action], state: Tuple.to_list(game.state)}
         {:reply, :ok, socket}
       _ ->
-        game = Pathfinder.state(game_id)
+        broadcast! socket, "next", %{
+          changes: [],
+          state: Tuple.to_list(worker_state.state)
+        }
 
-        broadcast! socket, "next", %{changes: [], state: Tuple.to_list(game.state)}
         {:reply, :error, socket}
     end
+  end
+
+  defp handle_win(worker_id, winner_id) do
+    game = worker_id |> elem(1) |> Data.get_game!()
+    history = Pathfinder.state(worker_id).history
+
+    # TODO(DarinM223): add history to database
+    {:ok, _} = Data.update_game(game, %{winner: winner_id})
   end
 
   @allowed_actions ["place_goal", "set_wall", "place_player", "remove_player", "move_player"]
