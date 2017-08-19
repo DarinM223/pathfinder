@@ -1,7 +1,9 @@
 defmodule PathfinderWeb.Data do
+  alias Ecto.Multi
   alias PathfinderWeb.Repo
   alias PathfinderWeb.Accounts.User
   alias PathfinderWeb.Data.Game
+  alias PathfinderWeb.Data.Change
   import Ecto.Query
 
   @list_users_limit 100
@@ -60,8 +62,17 @@ defmodule PathfinderWeb.Data do
     |> Game.changeset(%{})
   end
 
-  def change_game(%Game{} = game \\ %Game{}) do
-    Game.changeset(game, %{})
+  def change_game(%Game{} = game \\ %Game{}, attrs \\ %{}) do
+    Game.changeset(game, attrs)
+  end
+
+  def update_on_win(%Game{} = game \\ %Game{}, winner_id, change_attrs_list) do
+    multi =
+      Multi.new()
+      |> Multi.update(:game, change_game(game, %{winner: winner_id}))
+      |> Multi.insert_all(:changes, Change, change_attrs_list)
+
+    Repo.transaction(multi)
   end
 
   def create_user_game(%User{} = user, attrs) do

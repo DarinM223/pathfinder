@@ -8,8 +8,8 @@ defmodule PathfinderWeb.Data.Change do
     field :args, :map
     field :name, :string
     field :type, :string
+    field :user_id, :integer
     belongs_to :game, PathfinderWeb.Data.Game
-    belongs_to :user, PathfinderWeb.Accounts.User
 
     timestamps()
   end
@@ -17,7 +17,7 @@ defmodule PathfinderWeb.Data.Change do
   @doc false
   def changeset(%Change{} = change, attrs) do
     change
-    |> cast(attrs, [:name, :args, :type])
-    |> validate_required([:name, :args, :type])
+    |> cast(attrs, [:name, :args, :user_id])
+    |> validate_required([:name, :args, :user_id])
   end
 end

@@ -2,6 +2,7 @@ defmodule PathfinderWeb.Web.GameChannel do
   use PathfinderWeb.Web, :channel
 
   alias PathfinderWeb.Data
+  alias PathfinderWeb.Web.ActionView
   alias PathfinderWeb.Web.PlayerView
 
   def join("games:" <> game_id, _params, socket) do
@@ -101,9 +102,22 @@ defmodule PathfinderWeb.Web.GameChannel do
   defp handle_win(worker_id, winner_id) do
     game = worker_id |> elem(1) |> Data.get_game!()
     history = Pathfinder.state(worker_id).history
+    attrs_list = Enum.reduce(history, [], fn {user_id, name, params}, attrs_list ->
+      change = Phoenix.View.render(ActionView, "action.json", %{
+        action: {name, params}
+      })
 
-    # TODO(DarinM223): add history to database
-    {:ok, _} = Data.update_game(game, %{winner: winner_id})
+      time = Ecto.DateTime.utc
+      change =
+        change
+        |> Map.put(:user_id, user_id)
+        |> Map.put(:game_id, game.id)
+        |> Map.put(:inserted_at, time)
+        |> Map.put(:updated_at, time)
+      [change | attrs_list]
+    end)
+
+    Data.update_on_win(game, winner_id, attrs_list)
   end
 
   @allowed_actions ["place_goal", "set_wall", "place_player", "remove_player", "move_player"]

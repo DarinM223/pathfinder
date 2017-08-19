@@ -6,7 +6,9 @@ defmodule PathfinderWeb.Web.ActionView do
       value -> value
     end)
 
-    %{name: Atom.to_string(action_name),
-      params: params}
+    %{
+      name: Atom.to_string(action_name),
+      args: %{"params" => params}
+    }
   end
 end
