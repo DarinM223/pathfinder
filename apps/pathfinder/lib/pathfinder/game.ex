@@ -21,9 +21,14 @@ defmodule Pathfinder.Game do
   Returns a new game state.
   """
   def new(player1, player2) do
-    %{state: {:build, nil},
-      players: %{player1 => Player.new(),
-                 player2 => Player.new()}}
+    %{
+      state: {:build, nil},
+      players: %{
+        player1 => Player.new(),
+        player2 => Player.new()
+      },
+      history: []
+    }
   end
 
   @doc """
@@ -83,6 +88,11 @@ defmodule Pathfinder.Game do
     with {:ok, board} <- result,
          true <- Board.valid?(board) do
       game = update_in(game.players[player].board, fn _ -> board end)
+      game = update_in(game.history, fn history ->
+        changes
+        |> Stream.map(fn {name, args} -> {player, name, args} end)
+        |> Enum.concat(history)
+      end)
       {:ok, game}
     else
       _ -> :error
@@ -105,7 +115,7 @@ defmodule Pathfinder.Game do
       |> Stream.filter(&(elem(&1, 0) != player))
       |> Stream.map(&(elem(&1, 0)))
       |> Enum.take(1)
-    game = %{game | state: {:turn, enemy}}
+    game = %{game | state: {:turn, enemy}, history: [{player, fun, args} | game.history]}
     enemy_board = get_in(game, [:players, enemy, :board])
     player_enemy_board = get_in(game, [:players, player, :enemy_board])
 
