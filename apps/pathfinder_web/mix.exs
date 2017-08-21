@@ -41,6 +41,7 @@ defmodule PathfinderWeb.Mixfile do
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
      {:comeonin, "~> 3.2"},
+     {:poison, "~> 3.1"},
      {:pathfinder, in_umbrella: true}]
   end
 

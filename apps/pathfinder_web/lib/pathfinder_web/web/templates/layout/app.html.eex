@@ -21,6 +21,7 @@
           <ul class="nav navbar-nav">
             <%= if @current_user do %>
               <li><%= link "Games", to: game_path(@conn, :index) %></li>
+              <li><%= link "Replays", to: replay_path(@conn, :index) %></li>
             <% end %>
           </ul>
           <ul class="nav navbar-nav navbar-right">

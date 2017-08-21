@@ -28,6 +28,8 @@ defmodule PathfinderWeb.Web.Router do
 
     resources "/games", GameController, only: [:new, :index, :create, :show, :delete]
     post "/games/:id/finish", GameController, :finish
+
+    resources "/replays", ReplayController, only: [:index, :show]
   end
 
   # Other scopes may use custom stacks.

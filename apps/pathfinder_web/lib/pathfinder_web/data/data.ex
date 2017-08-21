@@ -9,13 +9,20 @@ defmodule PathfinderWeb.Data do
   @list_users_limit 100
   @other_users_limit 10
 
-  def list_user_created_games(%User{} = user) do
-    Repo.all(
-      from g in Ecto.assoc(user, :games),
-        where: is_nil(g.winner),
+  def list_user_created_games(%User{} = user, show_completed_games \\ false) do
+    query =
+      if show_completed_games do
+        from g in Ecto.assoc(user, :games), where: not is_nil(g.winner)
+      else
+        from g in Ecto.assoc(user, :games), where: is_nil(g.winner)
+      end
+
+    query =
+      from g in query,
         order_by: [desc: g.inserted_at],
         limit: @list_users_limit
-    )
+
+    Repo.all(query)
   end
 
   def list_user_participating_games(%User{} = user) do
@@ -40,6 +47,10 @@ defmodule PathfinderWeb.Data do
         order_by: [desc: g.inserted_at],
         limit: @other_users_limit
     )
+  end
+
+  def list_changes(%Game{} = game) do
+    Repo.all(from c in Ecto.assoc(game, :changes), order_by: c.id)
   end
 
   def get_shared_game!(shareid) do

@@ -113,7 +113,7 @@ defmodule PathfinderWeb.DataTest do
     assert participating_games == sorted_ids([game3, game4])
   end
 
-  test "list_user_created_games and list_user_participating_games ignores won games", %{user: user} do
+  test "list_user_created_games and list_user_participating_games ignores completed games", %{user: user} do
     {:ok, other} = insert_user(%{username: "foo"})
 
     {:ok, game1} = insert_game(user)
@@ -136,6 +136,20 @@ defmodule PathfinderWeb.DataTest do
 
     assert created_games == [game1.id]
     assert participating_games == [game2.id]
+  end
+
+  test "list_user_created_games with second parameter true only shows completed games", %{user: user} do
+    {:ok, _} = insert_game(user)
+    {:ok, won_game} = insert_game(user)
+
+    {:ok, _} = Data.update_game(won_game, %{winner: user.id})
+
+    created_games =
+      user
+      |> Data.list_user_created_games(true)
+      |> sorted_ids()
+
+    assert created_games == [won_game.id]
   end
 
   test "list_recent_other_usernames returns 10 most recent other usernames", %{user: user} do

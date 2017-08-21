@@ -10,7 +10,7 @@
         <td><%= link Map.get(@game_names, game.id), to: @path.(game) %></td>
         <%= if path = @finish_path.(game) do %>
           <td class="text-right">
-            <%= link "Forfeit", to: path, class: "btn btn-danger", method: :post %>
+            <%= link @finish_text, to: path, class: "btn btn-danger", method: :post %>
           </td>
         <% end %>
       </tr>

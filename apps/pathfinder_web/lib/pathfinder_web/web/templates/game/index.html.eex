@@ -6,6 +6,7 @@
       <%= render "game_list.html", games: @created_games,
                                    game_names: make_game_names(@created_games, &(&1.other_user_name)),
                                    path: &game_path(@conn, :show, &1),
+                                   finish_text: "Forfeit",
                                    finish_path: &game_path(@conn, :finish, &1) %>
     </div>
     <div class="col-md-6">
@@ -13,6 +14,7 @@
       <%= render "game_list.html", games: @participating_games,
                                    game_names: make_game_names(@participating_games, &(&1.user.username)),
                                    path: &play_path(@conn, :show, &1.shareid),
+                                   finish_text: "Forfeit",
                                    finish_path: &game_path(@conn, :finish, &1) %>
     </div>
   </div>

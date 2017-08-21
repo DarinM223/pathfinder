@@ -1,0 +1,5 @@
+<%= content_tag :div, id: "game", data: [playerid: player_id(@conn),
+                                         replay: replay_changes(@changes)] do %>
+<% end %>
+
+<div id="game"></div>
