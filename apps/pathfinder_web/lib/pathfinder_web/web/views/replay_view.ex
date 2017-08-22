@@ -10,6 +10,10 @@ defmodule PathfinderWeb.Web.ReplayView do
   end
 
   defp clean_data(%{name: name, args: args, user_id: user_id}) do
-    %{name: name, args: args, user_id: user_id}
+    %{
+      name: name,
+      params: Map.get(args, "params"),
+      user_id: user_id
+    }
   end
 end

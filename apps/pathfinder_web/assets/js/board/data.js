@@ -127,6 +127,21 @@ export class Board {
 
   @action applyAction(action) {
     switch (action.name) {
+      case 'set_wall':
+        if (action.params.length === 3) {
+          const [pos1, pos2] = [convertPosition(action.params[0]), convertPosition(action.params[1])];
+          const direction = directionBetweenCells(pos1, pos2);
+          const [row, col] = pos1;
+          this.setWall(row, col, direction, action.params[2]);
+        } else {
+          this.toggleRowWall(action.params[0] - 1);
+        }
+        break;
+      case 'place_goal':
+        action.params.push(this.goal);
+        const [row, col] = convertPosition(action.params[0]);
+        this.placeGoal(row, col);
+        break;
       case 'place_player':
         this.placePlayer(action.params[0] - 1);
         break;
@@ -134,7 +149,43 @@ export class Board {
         this.movePlayer(action.params[0] - 1);
         break;
       case 'remove_player':
+        action.params.push(this.player[0]);
         this.removePlayer();
+        break;
+    }
+  }
+
+  @action undoAction(action) {
+    switch (action.name) {
+      case 'set_wall':
+        if (action.params.length === 3) {
+          const [pos1, pos2] = [convertPosition(action.params[0]), convertPosition(action.params[1])];
+          const direction = directionBetweenCells(pos1, pos2);
+          const [row, col] = pos1;
+          this.setWall(row, col, direction, !action.params[2]);
+        } else {
+          this.toggleRowWall(action.params[0] - 1);
+        }
+        break;
+      case 'place_goal':
+        const prevGoal = action.params.pop();
+        if (prevGoal === null) {
+          this.removeGoal();
+        } else {
+          const [row, col] = prevGoal;
+          this.placeGoal(row, col);
+        }
+        break;
+      case 'place_player':
+        this.removePlayer();
+        this.placePlayer(action.params[0] - 1);
+        break;
+      case 'move_player':
+        this.movePlayer(reverse(action.params[0] - 1));
+        break;
+      case 'remove_player':
+        const row = action.params.pop();
+        this.placePlayer(row);
         break;
     }
   }
@@ -248,12 +299,12 @@ export class Board {
       !this.cells[nextRow][nextCol].walls[reversedDirection];
   }
 
-  @action setWall(row, col, direction) {
-    this.cells[row][col].walls[direction] = true;
+  @action setWall(row, col, direction, wall = true) {
+    this.cells[row][col].walls[direction] = wall;
 
     const [nextRow, nextCol] = next(row, col, direction);
     const reversedDirection = reverse(direction);
-    this.cells[nextRow][nextCol].walls[reversedDirection] = true;
+    this.cells[nextRow][nextCol].walls[reversedDirection] = wall;
   }
 
   @action toggleRowWall(row) {
@@ -285,6 +336,13 @@ export class Board {
     this.cells[row][col].data = MARKER;
 
     this.player = null;
+  }
+
+  @action removeGoal() {
+    const [row, col] = this.goal;
+    this.cells[row][col].data = null;
+
+    this.goal = null;
   }
 }
 
@@ -327,6 +385,10 @@ export function reverse(direction) {
     case LEFT:
       return RIGHT;
   }
+}
+
+export function convertPosition([row, col]) {
+  return [row - 1, col - 1];
 }
 
 export function storageId(gameId) {

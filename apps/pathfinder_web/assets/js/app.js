@@ -27,11 +27,25 @@ import React, { Component, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
 import { observer } from 'mobx-react';
 import { Game, GameView } from './game.js';
+import { Replay, ReplayView } from './replay.js';
 import socket from './socket.js';
 
-const game = new Game(socket, document.getElementById('game'));
-
-ReactDOM.render(
-  <GameView game={game} />,
-  document.getElementById('game')
-);
+const element = document.getElementById('game');
+if (element !== null) {
+  const game = new Game(socket, element);
+  const replays = element.getAttribute('data-replay');
+  if (replays === null) {
+    ReactDOM.render(
+      <GameView game={game} />,
+      document.getElementById('game')
+    );
+  } else {
+    const changes = JSON.parse(replays);
+    const playerId = element.getAttribute('data-playerid');
+    const replay = new Replay(playerId, changes);
+    ReactDOM.render(
+      <ReplayView replay={replay} />,
+      document.getElementById('game')
+    );
+  }
+}
