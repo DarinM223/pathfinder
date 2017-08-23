@@ -78,6 +78,11 @@ const LOSE_TEXT = (
     <h2 style={styles.centerText}>{"You lost!"}</h2>
   </div>
 );
+const replayAlert = (replayLink) => (
+  <div className="alert alert-success" style={styles.centerText} role="alert">
+    Replay of the game was uploaded <a href={replayLink}>here</a>
+  </div>
+);
 const errorAlert = (error) => (
   <div className="alert alert-danger" style={styles.centerText} role="alert">
     {error}
@@ -123,6 +128,8 @@ export class GameTextView extends Component {
     }
     if (game.error !== null && game.error.length > 0) {
       alert = errorAlert(game.error);
+    } else if (game.won !== null) {
+      alert = replayAlert(game.replayLink);
     }
 
     return (

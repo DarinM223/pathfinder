@@ -159,15 +159,19 @@ export class Board {
   }
 
   @action undoAction(action) {
+    const oldPosition = this.player;
     switch (action.name) {
       case 'place_player':
         if (this.player !== null) {
           this.removePlayer(false);
+          if (this.goal !== null &&
+              this.goal[0] === oldPosition[0] &&
+              this.goal[1] === oldPosition[1]) {
+            this.placeGoal(...this.goal);
+          }
         }
-        this.placePlayer(action.params[0] - 1);
         break;
       case 'move_player':
-        const oldPosition = this.player;
         this.movePlayer(reverse(action.params[0] - 1), false);
         if (this.goal !== null &&
             this.goal[0] === oldPosition[0] &&

@@ -3,26 +3,22 @@ defmodule PathfinderWeb.Web.ReplayController do
 
   alias PathfinderWeb.Data
 
-  def index(conn, _, user) do
-    games = Data.list_user_created_games(user, true)
+  plug :authenticate_user when action in [:index]
+
+  def index(conn, _) do
+    games = Data.list_user_created_games(conn.assigns.current_user, true)
     render conn, "index.html", games: games
   end
 
-  def show(conn, %{"id" => id}, user) do
-    game = Data.get_user_game!(user, id)
-    changes = Data.list_changes(game)
-    render conn, "show.html", changes: changes
-  end
-
-  @doc """
-  Default plug called by Phoenix framework that
-  dispatches to the proper action.
-
-  This is overwritten because we want to include the user as a
-  parameter to the route functions.
-  """
-  def action(conn, _) do
-    apply(__MODULE__, action_name(conn),
-          [conn, conn.params, conn.assigns.current_user])
+  def show(conn, %{"id" => id}) do
+    game = Data.get_game!(id)
+    if game.winner != nil do
+      changes = Data.list_changes(game)
+      render conn, "show.html", changes: changes
+    else
+      conn
+      |> put_flash(:error, "Can only view the replay of a completed game")
+      |> redirect(to: page_path(conn, :index))
+    end
   end
 end

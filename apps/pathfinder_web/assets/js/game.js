@@ -38,6 +38,7 @@ export class Game {
     this.gameId = element.getAttribute('data-id');
     this.playerId = element.getAttribute('data-playerid');
     this.shareId = element.getAttribute('data-shareid');
+    this.replayLink = element.getAttribute('data-replaylink');
 
     this.socket.connect();
 

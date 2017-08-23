@@ -19,6 +19,10 @@ defmodule PathfinderWeb.Web.GameView do
     end
   end
 
+  def replay_link(conn, game) do
+    Router.Helpers.url(conn) <> "/replays/#{game.id}"
+  end
+
   @doc """
   Creates the names for each game accounting for duplicate usernames.
 
