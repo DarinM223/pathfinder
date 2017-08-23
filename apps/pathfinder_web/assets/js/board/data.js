@@ -140,12 +140,18 @@ export class Board {
         this.placeGoal(...convertPosition(action.params[0]));
         break;
       case 'place_player':
-        this.placePlayer(action.params[0] - 1);
+        const row = action.params[0] - 1;
+        this.temporaryHighlight(row, 0, HINT_HIGHLIGHT);
+        this.placePlayer(row);
         break;
       case 'move_player':
-        this.movePlayer(action.params[0] - 1);
+        const direction = action.params[0] - 1;
+        const nextPosition = next(...this.player, direction);
+        this.temporaryHighlight(...nextPosition, HINT_HIGHLIGHT);
+        this.movePlayer(direction);
         break;
       case 'remove_player':
+        this.temporaryHighlight(...this.player, HINT_HIGHLIGHT);
         action.params.push(this.player[0]);
         this.removePlayer();
         break;
@@ -351,6 +357,13 @@ export class Board {
     this.cells[row][col].data = null;
 
     this.goal = null;
+  }
+
+  @action temporaryHighlight(row, col, highlight, timeout = 1000) {
+    this.cells[row][col].highlight = highlight;
+    setTimeout(() => {
+      this.cells[row][col].highlight = null;
+    }, timeout);
   }
 }
 
