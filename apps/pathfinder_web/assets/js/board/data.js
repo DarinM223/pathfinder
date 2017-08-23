@@ -131,16 +131,13 @@ export class Board {
         if (action.params.length === 3) {
           const [pos1, pos2] = [convertPosition(action.params[0]), convertPosition(action.params[1])];
           const direction = directionBetweenCells(pos1, pos2);
-          const [row, col] = pos1;
-          this.setWall(row, col, direction, action.params[2]);
+          this.setWall(...pos1, direction, action.params[2]);
         } else {
           this.toggleRowWall(action.params[0] - 1);
         }
         break;
       case 'place_goal':
-        action.params.push(this.goal);
-        const [row, col] = convertPosition(action.params[0]);
-        this.placeGoal(row, col);
+        this.placeGoal(...convertPosition(action.params[0]));
         break;
       case 'place_player':
         this.placePlayer(action.params[0] - 1);
@@ -157,31 +154,20 @@ export class Board {
 
   @action undoAction(action) {
     switch (action.name) {
-      case 'set_wall':
-        if (action.params.length === 3) {
-          const [pos1, pos2] = [convertPosition(action.params[0]), convertPosition(action.params[1])];
-          const direction = directionBetweenCells(pos1, pos2);
-          const [row, col] = pos1;
-          this.setWall(row, col, direction, !action.params[2]);
-        } else {
-          this.toggleRowWall(action.params[0] - 1);
-        }
-        break;
-      case 'place_goal':
-        const prevGoal = action.params.pop();
-        if (prevGoal === null) {
-          this.removeGoal();
-        } else {
-          const [row, col] = prevGoal;
-          this.placeGoal(row, col);
-        }
-        break;
       case 'place_player':
-        this.removePlayer();
+        if (this.player !== null) {
+          this.removePlayer(false);
+        }
         this.placePlayer(action.params[0] - 1);
         break;
       case 'move_player':
-        this.movePlayer(reverse(action.params[0] - 1));
+        const oldPosition = this.player;
+        this.movePlayer(reverse(action.params[0] - 1), false);
+        if (this.goal !== null &&
+            this.goal[0] === oldPosition[0] &&
+            this.goal[1] === oldPosition[1]) {
+          this.placeGoal(...this.goal);
+        }
         break;
       case 'remove_player':
         const row = action.params.pop();
@@ -313,27 +299,49 @@ export class Board {
   }
 
   @action placePlayer(row) {
+    if (this.cells[row][0].walls[LEFT] === true) {
+      return;
+    }
+
     if (this.player !== null) {
-      const [playerRow, playerCol ] = this.player;
+      const [playerRow, playerCol] = this.player;
       this.cells[playerRow][playerCol].data = null;
     }
     this.cells[row][0].data = PLAYER;
     this.player = [row, 0];
   }
 
-  @action movePlayer(direction) {
+  @action movePlayer(direction, addMarker = true) {
     const [row, col] = this.player;
-    this.cells[row][col].data = MARKER;
+    if (this.cells[row][col].walls[direction] === true) {
+      return;
+    }
 
     const [nextRow, nextCol] = next(row, col, direction);
-    this.cells[nextRow][nextCol].data = PLAYER;
+    if (!isValidCell(nextRow, nextCol)) {
+      return;
+    }
 
+    if (addMarker) {
+      this.cells[row][col].data = MARKER;
+    } else {
+      this.cells[row][col].data = null;
+    }
+    this.cells[nextRow][nextCol].data = PLAYER;
     this.player = [nextRow, nextCol];
   }
 
-  @action removePlayer() {
+  @action removePlayer(addMarker = true) {
     const [row, col] = this.player;
-    this.cells[row][col].data = MARKER;
+    if (this.cells[row][col].walls[LEFT] === true) {
+      return;
+    }
+
+    if (addMarker) {
+      this.cells[row][col].data = MARKER;
+    } else {
+      this.cells[row][col].data = null;
+    }
 
     this.player = null;
   }

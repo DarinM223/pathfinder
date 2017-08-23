@@ -28,14 +28,15 @@ export class Replay {
   constructor(playerId, changes) {
     this.playerId = playerId;
     this.changes = changes;
-    this.currentChange = 0;
+    this.currentChange = -1;
 
     this.applyBuildChanges();
   }
 
   @action applyBuildChanges() {
-    while (this.currentChange < this.changes.length) {
-      const change = this.changes[this.currentChange];
+    let i = 0;
+    while (i < this.changes.length) {
+      const change = this.changes[i];
       if (BUILD_CHANGES.indexOf(change.name) < 0) {
         break;
       }
@@ -45,14 +46,34 @@ export class Replay {
       } else {
         this.enemyBoard.applyAction(change);
       }
-      this.currentChange++;
+      i++;
     }
+
+    this.changes = this.changes.splice(i, this.changes.length);
   }
 
   @action next() {
+    if (this.currentChange < this.changes.length - 1) {
+      this.currentChange++;
+      const change = this.changes[this.currentChange];
+      if (change.user_id == this.playerId) {
+        this.enemyBoard.applyAction(change);
+      } else {
+        this.playerBoard.applyAction(change);
+      }
+    }
   }
 
   @action prev() {
+    if (this.currentChange > -1) {
+      const change = this.changes[this.currentChange];
+      if (change.user_id == this.playerId) {
+        this.enemyBoard.undoAction(change);
+      } else {
+        this.playerBoard.undoAction(change);
+      }
+      this.currentChange--;
+    }
   }
 }
 
@@ -73,6 +94,25 @@ export class ReplayView extends Component {
               <BoardView board={replay.enemyBoard} game={null} />
             </div>
             <div className="col-md-2" />
+          </div>
+          <br />
+          <div className="row">
+            <div className="col-md-5" />
+            <div className="col-md-2">
+              <button
+                type="button"
+                className="btn btn-info"
+                onClick={e => replay.prev()}>
+                {"< Prev"}
+              </button>
+              <button
+                type="button"
+                className="btn btn-info"
+                onClick={e => replay.next()}>
+                {"Next >"}
+              </button>
+            </div>
+            <div className="col-md-5" />
           </div>
         </div>
       </div>
