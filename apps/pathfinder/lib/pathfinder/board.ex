@@ -280,6 +280,7 @@ defmodule Pathfinder.Board do
       _ -> :error
     end
   end
+  def remove_player(board, _), do: remove_player(board)
 
   @doc """
   Places the goal on a cell in the board.
@@ -314,6 +315,7 @@ defmodule Pathfinder.Board do
       _ -> :error
     end
   end
+  def move_player(board, direction, _), do: move_player(board, direction)
 
   @doc """
   Returns the player's location in the board.

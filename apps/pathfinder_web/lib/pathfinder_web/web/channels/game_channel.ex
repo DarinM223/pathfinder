@@ -91,7 +91,7 @@ defmodule PathfinderWeb.Web.GameChannel do
         {:reply, :ok, socket}
       _ ->
         broadcast! socket, "next", %{
-          changes: [],
+          changes: [highlight_position(action)],
           state: Tuple.to_list(worker_state.state)
         }
 
@@ -130,5 +130,15 @@ defmodule PathfinderWeb.Web.GameChannel do
     end
 
     {String.to_atom(name), Enum.map(params, convert_to_tuples)}
+  end
+
+  defp highlight_position(%{"name" => "place_player", "params" => [row]}) do
+    %{name: "highlight_position", params: [[row, 1]]}
+  end
+  defp highlight_position(%{"name" => "remove_player", "params" => [row]}) do
+    %{name: "highlight_position", params: [[row, 1]]}
+  end
+  defp highlight_position(%{"name" => "move_player", "params" => [_, pos]}) do
+    %{name: "highlight_position", params: [pos]}
   end
 end

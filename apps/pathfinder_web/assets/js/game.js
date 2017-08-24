@@ -153,10 +153,11 @@ export class Game {
   }
 
   @action movePlayer(direction) {
+    const [nextRow, nextCol] = next(...this.enemyBoard.player, direction);
     const payload = {
       action: {
         name: 'move_player',
-        params: [direction + 1],
+        params: [direction + 1, [nextRow + 1, nextCol + 1]],
       }
     };
 
@@ -189,7 +190,7 @@ export class Game {
     const payload = {
       action: {
         name: 'remove_player',
-        params: [],
+        params: [row + 1],
       }
     };
 

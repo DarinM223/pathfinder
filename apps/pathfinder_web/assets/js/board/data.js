@@ -155,6 +155,10 @@ export class Board {
         action.params.push(this.player[0]);
         this.removePlayer();
         break;
+      case 'highlight_position':
+        const position = convertPosition(action.params[0]);
+        this.temporaryHighlight(...position, HINT_HIGHLIGHT);
+        break;
     }
   }
 
@@ -440,6 +444,3 @@ function makeCells() {
   }
   return cells;
 }
-
-const store = new Board();
-export default store;

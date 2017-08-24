@@ -121,13 +121,14 @@ defmodule PathfinderWeb.Web.GameChannelTest do
   test "turn broadcasts next turn to all players on error",
        %{user: user, socket: socket, other_socket: other_socket, player: player} do
     user_id = user.id
+    highlight_action = %{name: "highlight_position", params: [[3, 1]]}
     if player == -1 do
       ref = push other_socket, "turn", %{"action" => @blocked_action}
-      assert_broadcast "next", %{changes: [], state: [:turn, ^user_id]}
+      assert_broadcast "next", %{changes: [^highlight_action], state: [:turn, ^user_id]}
       assert_reply ref, :error, %{}
     else
       ref = push socket, "turn", %{"action" => @blocked_action}
-      assert_broadcast "next", %{changes: [], state: [:turn, -1]}
+      assert_broadcast "next", %{changes: [^highlight_action], state: [:turn, -1]}
       assert_reply ref, :error, %{}
     end
   end
