@@ -3,6 +3,8 @@ defmodule PathfinderWeb.Web.PlayController do
 
   alias PathfinderWeb.Data
 
+  require Logger
+
   def show(conn, %{"shareid" => shareid}) do
     game = Data.get_shared_game!(shareid)
 
@@ -15,6 +17,8 @@ defmodule PathfinderWeb.Web.PlayController do
       else
         nil
       end
+
+    Logger.info("Generating token: #{inspect token}")
 
     render conn, "show.html", game: game, token: token
   end

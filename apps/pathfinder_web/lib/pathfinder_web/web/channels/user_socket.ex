@@ -1,6 +1,8 @@
 defmodule PathfinderWeb.Web.UserSocket do
   use Phoenix.Socket
 
+  require Logger
+
   @max_age 86400
 
   ## Channels
@@ -26,6 +28,7 @@ defmodule PathfinderWeb.Web.UserSocket do
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
   def connect(%{"token" => token}, socket) do
+    Logger.info("Verifying token: #{inspect token}")
     case Phoenix.Token.verify(socket, "user socket", token, max_age: @max_age) do
       {:ok, user_id} ->
         {:ok, assign(socket, :user_id, user_id)}
