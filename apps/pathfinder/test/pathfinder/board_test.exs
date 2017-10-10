@@ -206,4 +206,11 @@ defmodule Pathfinder.BoardTest do
 
     assert Board.valid?(board) == false
   end
+
+  test "generate/0 returns a valid maze" do
+    for _ <- 1..100 do
+      board = Board.generate()
+      assert Board.valid?(board)
+    end
+  end
 end

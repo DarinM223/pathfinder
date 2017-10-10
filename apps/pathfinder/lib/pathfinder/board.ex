@@ -47,6 +47,65 @@ defmodule Pathfinder.Board do
              {nil, false, false, false, false}
          end
        end)
+    |> _init_board()
+  end
+
+  @doc """
+  Creates a board with a random maze.
+
+  Uses the recursive backtracking algorithm described in:
+  https://en.wikipedia.org/wiki/Maze_generation_algorithm
+  """
+  def generate do
+    cells =
+      for _ <- 1..@column_size, col <- 1..@row_size do
+        if col == 1 do
+          {nil, true, true, true, false}
+        else
+          {nil, true, true, true, true}
+        end
+      end
+
+    cells
+    |> _init_board()
+    |> _generate_maze({1, 1}, %{})
+    |> elem(0)
+    |> _set_goal()
+  end
+
+  # Sets the goal to a random position in the maze.
+  defp _set_goal(board) do
+    goal_pos = {Enum.random(1..@column_size), Enum.random(1..@row_size)}
+
+    board
+    |> Map.update(index(goal_pos), nil, &Kernel.put_elem(&1, 0, :goal))
+    |> Map.put(:goal, goal_pos)
+  end
+
+  # Recursive backtracking algorithm for randomly generating maze.
+  defp _generate_maze(board, {row, col}, visited) do
+    visited = Map.put(visited, index(row, col), true)
+    neighbors =
+      @directions
+      |> Stream.map(&next({row, col}, &1))
+      |> Stream.filter(fn {:ok, _} -> true; _ -> false end)
+      |> Stream.map(&elem(&1, 1))
+      |> Enum.shuffle()
+
+    Enum.reduce(neighbors, {board, visited}, fn cell, {board, visited} ->
+      if not Map.has_key?(visited, index(cell)) do
+        {:ok, board} = set_wall(board, {row, col}, cell, false)
+        _generate_maze(board, cell, visited)
+      else
+        {board, visited}
+      end
+    end)
+  end
+
+  # Converts a board to from a list of cells to a map of indexes to cells
+  # and sets the player and goal to nil.
+  defp _init_board(cells) do
+    cells
     |> Stream.with_index(0)
     |> Enum.reduce(%{}, fn {cell, index}, acc ->
          Map.put(acc, index, cell)
