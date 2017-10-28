@@ -15,9 +15,14 @@ defmodule Pathfinder.Board do
   being the top, right, bottom, and left walls respectively.
   """
 
-  @row_size 6
-  @column_size 6
-  @directions [1, 2, 3, 4]
+  @row_size Application.get_env(:pathfinder, :row_size)
+  @column_size Application.get_env(:pathfinder, :column_size)
+  @directions [
+    1, # Top
+    2, # Right
+    3, # Bottom
+    4  # Left
+  ]
 
   @doc """
   Creates an empty board.
@@ -112,6 +117,23 @@ defmodule Pathfinder.Board do
        end)
     |> Map.put(:player, nil)
     |> Map.put(:goal, nil)
+  end
+
+  @doc """
+  Returns a stream of all valid neighbors and their directions to a given cell.
+
+      iex> Enum.to_list(Pathfinder.Board.valid_neighbors({1, 1}))
+      [{2, {1, 2}}, {3, {2, 1}}]
+
+      iex> Enum.to_list(Pathfinder.Board.valid_neighbors({-1, -1}))
+      []
+
+  """
+  def valid_neighbors(cell) do
+    @directions
+    |> Stream.map(&{&1, next(cell, &1)})
+    |> Stream.filter(fn {_, {:ok, _}} -> true; _ -> false end)
+    |> Stream.map(fn {dir, {:ok, pos}} -> {dir, pos} end)
   end
 
   @doc """
@@ -216,22 +238,11 @@ defmodule Pathfinder.Board do
       {:ok, Map.put(board, i, cell)}
     end
   end
-  def set_wall(board, {row1, col1}, {row2, col2}, value) do
-    index1 = index(row1, col1)
-    index2 = index(row2, col2)
+  def set_wall(board, pos1, pos2, value) do
+    index1 = index(pos1)
+    index2 = index(pos2)
 
-    # Find the direction between the cells by applying every
-    # direction to the first cell and filtering the cells
-    # that don't match the second cell.
-    #
-    # Inefficient, but keeps direction details contained inside next().
-    possible_directions =
-      @directions
-      |> Stream.map(&{&1, next({row1, col1}, &1)})
-      |> Stream.filter(fn {_, e} -> e == {:ok, {row2, col2}} end)
-      |> Enum.map(&elem(&1, 0))
-
-    with [direction | _] <- possible_directions,
+    with {:ok, direction} <- direction_between_points(pos1, pos2),
          {:ok, cell1} <- Map.fetch(board, index1),
          {:ok, cell2} <- Map.fetch(board, index2) do
       cell1 = Kernel.put_elem(cell1, direction, value)
@@ -243,6 +254,36 @@ defmodule Pathfinder.Board do
       {:ok, board}
     else
       _ -> :error
+    end
+  end
+
+  @doc """
+  Finds the direction between two positions in the board.
+
+  ## Examples
+
+      iex> Pathfinder.Board.direction_between_points({1, 1}, {1, 2})
+      {:ok, 2}
+
+      iex> Pathfinder.Board.direction_between_points({1, 1}, {1, 3})
+      :error
+
+  """
+  def direction_between_points(pos1, {row2, col2}) do
+    # Find the direction between the cells by applying every
+    # direction to the first cell and filtering the cells
+    # that don't match the second cell.
+    #
+    # Inefficient, but keeps direction details contained inside next().
+    possible_directions =
+      valid_neighbors(pos1)
+      |> Stream.filter(fn {_, e} -> e == {row2, col2} end)
+      |> Enum.map(&elem(&1, 0))
+
+    if length(possible_directions) > 0 do
+      {:ok, List.first(possible_directions)}
+    else
+      :error
     end
   end
 
@@ -352,6 +393,30 @@ defmodule Pathfinder.Board do
         |> Map.put(i, Kernel.put_elem(cell, 0, :goal))
         |> Map.put(:goal, position)
       {:ok, board}
+    end
+  end
+
+  @doc """
+  Return true if it is possible to move in a direction starting
+  from a position, false otherwise.
+
+      iex> Pathfinder.Board.can_move(Pathfinder.Board.new(), {1, 1}, 2)
+      true
+
+      iex> board = Pathfinder.Board.new()
+      iex> {:ok, board} = Pathfinder.Board.set_wall(board, {1, 1}, {1, 2}, true)
+      iex> Pathfinder.Board.can_move(board, {1, 1}, 2)
+      false
+
+      iex> Pathfinder.Board.can_move(Pathfinder.Board.new(), {-1, -1}, 2)
+      false
+
+  """
+  def can_move(board, pos, direction) do
+    pos_index = index(pos)
+    case Map.fetch(board, pos_index) do
+      {:ok, cell} when not elem(cell, direction) -> true
+      _ -> false
     end
   end
 

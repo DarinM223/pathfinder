@@ -29,4 +29,6 @@ use Mix.Config
 #
 #     import_config "#{Mix.env}.exs"
 
-config :pathfinder, registry: :game_registry
+config :pathfinder, registry: :game_registry,
+  row_size: 6,
+  column_size: 6
