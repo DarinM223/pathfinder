@@ -1,4 +1,8 @@
 defmodule Pathfinder.AI do
+  @moduledoc """
+  An implementation of Pathfinder AI.
+  """
+
   alias Pathfinder.AI
   alias Pathfinder.Board
 
@@ -15,6 +19,10 @@ defmodule Pathfinder.AI do
     %AI{}
   end
 
+  @doc """
+  Suggests a move. It returns the updated AI instance, a boolean that is false when backtracking,
+  and the suggested move.
+  """
   def move(%AI{move_stack: [], tried_entry_rows: tried_rows} = ai, board) do
     random_row = Enum.random(1..@column_size)
     if MapSet.member?(tried_rows, random_row) do

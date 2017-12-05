@@ -27,12 +27,12 @@ defmodule Pathfinder.AITest do
     end
   end
 
-  def _simulation(ai, board) do
+  defp _simulation(ai, board) do
     args = AI.move(ai, board)
-    {_, _, {fun, fun_args}} = args
+    assert {_, _, {fun, fun_args}} = args
 
     ai = Kernel.apply(AI, :move_success, Tuple.to_list(args))
-    {:ok, board} = Kernel.apply(Board, fun, [board | fun_args])
+    assert {:ok, board} = Kernel.apply(Board, fun, [board | fun_args])
 
     if Board.player_location(board) == Board.goal_location(board) do
       true

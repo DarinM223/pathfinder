@@ -15,6 +15,8 @@ defmodule Pathfinder.Board do
   being the top, right, bottom, and left walls respectively.
   """
 
+  alias Pathfinder.Board
+
   @row_size Application.get_env(:pathfinder, :row_size)
   @column_size Application.get_env(:pathfinder, :column_size)
   @directions [
@@ -55,58 +57,6 @@ defmodule Pathfinder.Board do
     |> _init_board()
   end
 
-  @doc """
-  Creates a board with a random maze.
-
-  Uses the recursive backtracking algorithm described in:
-  https://en.wikipedia.org/wiki/Maze_generation_algorithm
-  """
-  def generate do
-    cells =
-      for _ <- 1..@column_size, col <- 1..@row_size do
-        if col == 1 do
-          {nil, true, true, true, false}
-        else
-          {nil, true, true, true, true}
-        end
-      end
-
-    cells
-    |> _init_board()
-    |> _generate_maze({1, 1}, %{})
-    |> elem(0)
-    |> _set_goal()
-  end
-
-  # Sets the goal to a random position in the maze.
-  defp _set_goal(board) do
-    goal_pos = {Enum.random(1..@column_size), Enum.random(1..@row_size)}
-
-    board
-    |> Map.update(index(goal_pos), nil, &Kernel.put_elem(&1, 0, :goal))
-    |> Map.put(:goal, goal_pos)
-  end
-
-  # Recursive backtracking algorithm for randomly generating maze.
-  defp _generate_maze(board, {row, col}, visited) do
-    visited = Map.put(visited, index(row, col), true)
-    neighbors =
-      @directions
-      |> Stream.map(&next({row, col}, &1))
-      |> Stream.filter(fn {:ok, _} -> true; _ -> false end)
-      |> Stream.map(&elem(&1, 1))
-      |> Enum.shuffle()
-
-    Enum.reduce(neighbors, {board, visited}, fn cell, {board, visited} ->
-      if not Map.has_key?(visited, index(cell)) do
-        {:ok, board} = set_wall(board, {row, col}, cell, false)
-        _generate_maze(board, cell, visited)
-      else
-        {board, visited}
-      end
-    end)
-  end
-
   # Converts a board to from a list of cells to a map of indexes to cells
   # and sets the player and goal to nil.
   defp _init_board(cells) do
@@ -117,6 +67,86 @@ defmodule Pathfinder.Board do
        end)
     |> Map.put(:player, nil)
     |> Map.put(:goal, nil)
+  end
+
+  @doc """
+  Generates changes that creates a board with a random maze.
+
+  Uses the recursive backtracking algorithm described in:
+  https://en.wikipedia.org/wiki/Maze_generation_algorithm
+  """
+  def generate_changes do
+    _set_all_walls()
+    |> _remove_random_walls({1, 1}, %{})
+    |> elem(0)
+    |> Enum.reverse()
+  end
+
+  defp _set_all_walls do
+    cells = for row <- 1..@column_size, col <- 1..@row_size, do: {row, col}
+    Enum.reduce(cells, [], fn {row, col}, changes ->
+      set_wall_changes =
+        valid_neighbors({row, col})
+        |> Stream.map(&elem(&1, 1))
+        |> Enum.map(&{:set_wall, [{row, col}, &1, true]})
+
+      set_wall_changes ++ changes
+    end)
+  end
+
+  defp _remove_random_walls(changes, {row, col}, visited) do
+    visited = Map.put(visited, index(row, col), true)
+    neighbors =
+      valid_neighbors({row, col})
+      |> Stream.map(&elem(&1, 1))
+      |> Enum.shuffle()
+
+    Enum.reduce(neighbors, {changes, visited}, fn cell, {changes, visited} ->
+      if not Map.has_key?(visited, index(cell)) do
+        change = {:set_wall, [{row, col}, cell, false]}
+        changes = [change | changes]
+        _remove_random_walls(changes, cell, visited)
+      else
+        {changes, visited}
+      end
+    end)
+  end
+
+  @doc """
+  Applies a list of changes to the board.
+
+      iex> {:ok, board} = Pathfinder.Board.apply_changes(Pathfinder.Board.new(), [{:set_wall, [{1, 1}, {1, 2}, true]}])
+      iex> Map.get(board, Pathfinder.Board.index({1, 1})) # Check that wall was set
+      {nil, true, true, false, false}
+
+      iex> Pathfinder.Board.apply_changes(Pathfinder.Board.new(), [{:set_wall, [{1, 1}, {1, 0}, true]}])
+      :error
+
+  """
+  def apply_changes(board, changes) do
+    Enum.reduce(changes, {:ok, board}, fn
+      {fun, args}, {:ok, board} -> Kernel.apply(Board, fun, [board | args])
+      _, err -> err
+    end)
+  end
+
+  @doc """
+  Creates a board with a random maze.
+  """
+  def generate do
+    Board.new()
+    |> apply_changes(generate_changes())
+    |> elem(1)
+    |> _set_goal()
+  end
+
+  # Sets the goal to a random position in the maze.
+  defp _set_goal(board) do
+    goal_pos = {Enum.random(1..@column_size), Enum.random(1..@row_size)}
+
+    board
+    |> Map.update(index(goal_pos), nil, &Kernel.put_elem(&1, 0, :goal))
+    |> Map.put(:goal, goal_pos)
   end
 
   @doc """
