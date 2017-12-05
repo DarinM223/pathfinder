@@ -79,6 +79,7 @@ defmodule Pathfinder.Board do
     _set_all_walls()
     |> _remove_random_walls({1, 1}, %{})
     |> elem(0)
+    |> _add_goal()
     |> Enum.reverse()
   end
 
@@ -112,6 +113,11 @@ defmodule Pathfinder.Board do
     end)
   end
 
+  defp _add_goal(changes) do
+    goal_pos = {Enum.random(1..@column_size), Enum.random(1..@row_size)}
+    [{:place_goal, [goal_pos]} | changes]
+  end
+
   @doc """
   Applies a list of changes to the board.
 
@@ -134,19 +140,8 @@ defmodule Pathfinder.Board do
   Creates a board with a random maze.
   """
   def generate do
-    Board.new()
-    |> apply_changes(generate_changes())
-    |> elem(1)
-    |> _set_goal()
-  end
-
-  # Sets the goal to a random position in the maze.
-  defp _set_goal(board) do
-    goal_pos = {Enum.random(1..@column_size), Enum.random(1..@row_size)}
-
+    {:ok, board} = apply_changes(Board.new(), generate_changes())
     board
-    |> Map.update(index(goal_pos), nil, &Kernel.put_elem(&1, 0, :goal))
-    |> Map.put(:goal, goal_pos)
   end
 
   @doc """

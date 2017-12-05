@@ -29,9 +29,11 @@ defmodule Pathfinder.Socket.Client do
     {:connect, url, [token: token], state}
   end
 
-  def handle_connected(transport, %{game_id: game_id} = state) do
+  def channel_name(game_id), do: "games:#{game_id}"
+
+  def handle_connected(transport, state) do
     Logger.info("connected")
-    GenSocketClient.join(transport, "games:#{game_id}")
+    GenSocketClient.join(transport, channel_name(state.game_id))
     {:ok, state}
   end
 
@@ -43,15 +45,7 @@ defmodule Pathfinder.Socket.Client do
 
   def handle_joined(topic, payload, transport, state) do
     Logger.info("joined the topic #{topic}: #{inspect payload}")
-
-    # TODO(DarinM223): generate board and send build board changes
-    # TODO(DarinM223): convert tuples in arguments to lists
-    changes =
-      Board.generate_changes()
-      # |> Enum.map(fn {name, params} -> %{"name" => name, "params" => convert_to_lists(params)} end)
-
-    IO.puts("Changes: #{inspect changes}")
-    GenSocketClient.push(transport, "build", "build", %{"changes" => changes})
+    Process.send_after(self(), :send_build_changes, :timer.seconds(1))
     {:ok, state}
   end
 
@@ -67,7 +61,7 @@ defmodule Pathfinder.Socket.Client do
   end
 
   def handle_message(topic, event, payload, _transport, state) do
-    Logger.warn("message on topic #{topic}: #{event} #{inspect payload}")
+    Logger.info("message on topic #{topic}: #{event} #{inspect payload}")
     {:ok, state}
   end
 
@@ -79,7 +73,7 @@ defmodule Pathfinder.Socket.Client do
   # TODO(DarinM223): add reply to build and move messages
 
   def handle_reply(topic, _ref, payload, _transport, state) do
-    Logger.warn("reply on topic #{topic}: #{inspect payload}")
+    Logger.info("reply on topic #{topic}: #{inspect payload}")
     {:ok, state}
   end
 
@@ -96,14 +90,25 @@ defmodule Pathfinder.Socket.Client do
       {:ok, _ref} -> :ok
     end
   end
-  # TODO(DarinM223): delete this later
-  def handle_info(:ping_server, transport, state) do
-    Logger.info("sending ping ##{state.ping_ref}")
-    GenSocketClient.push(transport, "ping", "ping", %{ping_ref: state.ping_ref})
-    {:ok, %{state | ping_ref: state.ping_ref + 1}}
+  def handle_info(:send_build_changes, transport, state) do
+    Logger.info("sending build changes")
+    changes = Board.generate_changes() |> Enum.map(&serialize_change/1)
+    GenSocketClient.push(transport, channel_name(state.game_id), "build", %{"changes" => changes})
+    {:ok, state}
   end
   def handle_info(message, _transport, state) do
     Logger.warn("Unhandled message #{inspect message}")
     {:ok, state}
+  end
+
+  defp convert_to_lists(params) do
+    Enum.map(params, fn
+      tuple when is_tuple(tuple) -> Tuple.to_list(tuple)
+      value -> value
+    end)
+  end
+
+  defp serialize_change({name, params}) do
+    %{"name" => Atom.to_string(name), "params" => convert_to_lists(params)}
   end
 end

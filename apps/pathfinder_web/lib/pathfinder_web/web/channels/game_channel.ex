@@ -47,7 +47,6 @@ defmodule PathfinderWeb.Web.GameChannel do
   end
 
   def handle_in(action, params, socket) do
-    Logger.info("Handling: #{inspect action}")
     worker_id = socket.assigns.worker_id
     user_id = socket.assigns.user_id
     handle_in(action, params, worker_id, user_id, socket)
