@@ -38,6 +38,11 @@ defmodule PathfinderWeb.Web.GameController do
   def show(conn, %{"id" => id}, user) do
     game = Data.get_user_game!(user, id)
 
+    # Start up game worker if it isn't started for a bot game.
+    if game.other_user_id == -2 do
+      # TODO(DarinM223): handle this
+    end
+
     render conn, "show.html", game: game
   end
 

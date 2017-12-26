@@ -67,6 +67,8 @@ defmodule PathfinderWeb.Data.Game do
         end
       "nonexisting" ->
         put_change(changeset, :other_user_id, -1)
+      "bot" ->
+        put_change(changeset, :other_user_id, -2)
       _ ->
         add_error(changeset, :other_user_type, "must be a valid type")
     end
