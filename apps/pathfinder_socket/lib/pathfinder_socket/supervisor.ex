@@ -24,6 +24,6 @@ defmodule PathfinderSocket.Supervisor do
       worker(PathfinderSocket.Client, [])
     ]
 
-    supervise(children, strategy: :simple_one_for_one)
+    supervise(children, strategy: :simple_one_for_one, restart: :temporary)
   end
 end

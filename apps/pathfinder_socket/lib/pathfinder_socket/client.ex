@@ -9,6 +9,7 @@ defmodule PathfinderSocket.Client do
   alias Pathfinder.Board
 
   @behaviour GenSocketClient
+  @bot_id -2
 
   def start_link(url, game_id, endpoint) do
     GenSocketClient.start_link(
@@ -23,7 +24,9 @@ defmodule PathfinderSocket.Client do
       game_id: game_id,
       ai: AI.new(),
       board: Board.new(),
-      game_state: nil
+      game_state: nil,
+      curr_ref: nil,
+      curr_args: nil
     }
     token = Phoenix.Token.sign(endpoint, "bot", game_id)
     {:connect, url, [token: token], state}
@@ -64,13 +67,61 @@ defmodule PathfinderSocket.Client do
     {:ok, state}
   end
 
-  def handle_message(topic, event, payload, _transport, state) do
-    Logger.info("message on topic #{topic}: #{event} #{inspect payload}")
+  def handle_message("games:" <> game_id, event, payload, transport, state) do
+    if game_id == Integer.to_string(state.game_id) do
+      _handle_message(event, payload, transport, state)
+    else
+      {:ok, state}
+    end
+  end
+  def handle_message(_topic, _event, _payload, _transport, state), do: {:ok, state}
+
+  defp _handle_message("next", %{"state" => ["turn", @bot_id]}, transport, state) do
+    args = {ai, _, move} = AI.move(state.ai, state.board)
+    move = serialize_change(move)
+
+    {:ok, ref} = GenSocketClient.push(
+      transport,
+      channel_name(state.game_id),
+      "turn",
+      %{"action" => move}
+    )
+    {:ok, %{state | ai: ai, curr_ref: ref, curr_args: args}}
+  end
+  defp _handle_message("next", %{"state" => ["win", _]}, _transport, state) do
+    {:stop, "Game is over", state}
+  end
+  defp _handle_message(event, payload, _transport, state) do
+    Logger.info("#{event}: #{inspect payload}")
     {:ok, state}
   end
 
-  def handle_reply(topic, _ref, payload, _transport, state) do
-    Logger.info("reply on topic #{topic}: #{inspect payload}")
+  def handle_reply("games:" <> game_id, ref, payload, transport, state) do
+    if game_id == Integer.to_string(state.game_id) do
+      _handle_reply(ref, payload, transport, state)
+    else
+      {:ok, state}
+    end
+  end
+  def handle_reply(_topic, _ref, _payload, _transport, state), do: {:ok, state}
+
+  def _handle_reply(
+    ref,
+    %{"status" => status},
+    _transport,
+    %{curr_ref: curr_ref, curr_args: curr_args, board: board} = state
+  ) when ref == curr_ref do
+    if status == "ok" do
+      {_, _, {fun, fun_args}} = curr_args
+      ai = Kernel.apply(AI, :move_success, Tuple.to_list(curr_args))
+      {:ok, board} = Kernel.apply(Board, fun, [board | fun_args])
+      {:ok, %{state | ai: ai, board: board, curr_ref: nil, curr_args: nil}}
+    else
+      {:ok, %{state | curr_ref: nil, curr_args: nil}}
+    end
+  end
+  def _handle_reply(_ref, payload, _transport, state) do
+    Logger.info("reply: #{inspect payload}")
     {:ok, state}
   end
 
@@ -98,14 +149,14 @@ defmodule PathfinderSocket.Client do
     {:ok, state}
   end
 
-  defp convert_to_lists(params) do
+  def convert_to_lists(params) do
     Enum.map(params, fn
       tuple when is_tuple(tuple) -> Tuple.to_list(tuple)
       value -> value
     end)
   end
 
-  defp serialize_change({name, params}) do
+  def serialize_change({name, params}) do
     %{"name" => Atom.to_string(name), "params" => convert_to_lists(params)}
   end
 end
