@@ -89,7 +89,7 @@ defmodule PathfinderSocket.Client do
     {:ok, %{state | ai: ai, curr_ref: ref, curr_args: args}}
   end
   defp _handle_message("next", %{"state" => ["win", _]}, _transport, state) do
-    {:stop, "Game is over", state}
+    {:stop, :normal, state}
   end
   defp _handle_message(event, payload, _transport, state) do
     Logger.info("#{event}: #{inspect payload}")

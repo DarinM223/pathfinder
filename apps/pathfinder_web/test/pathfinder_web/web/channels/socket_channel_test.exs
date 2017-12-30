@@ -16,7 +16,7 @@ defmodule PathfinderWeb.Web.SocketChannelTest do
 
     user_token = Phoenix.Token.sign(@endpoint, "user socket", user.id)
     {:ok, socket} = connect(UserSocket, %{"token" => user_token})
-    {:ok, _} = Supervisor.start_child(Supervisor, @socket_url, game.id, @endpoint)
+    {:ok, _} = Client.start_link(@socket_url, game.id, @endpoint)
 
     {:ok, game: game, user_socket: socket}
   end
@@ -28,6 +28,8 @@ defmodule PathfinderWeb.Web.SocketChannelTest do
     assert_reply ref, :ok, %{}
 
     assert play_game(socket, game.user_id, AI.new(), Board.new())
+
+    :timer.sleep(200)
   end
 
   # Plays the game with the bot until someone wins.
