@@ -12,7 +12,7 @@ defmodule PathfinderSocket.Client do
   @behaviour GenSocketClient
   @bot_id -2
 
-  def start_link({registry, id}, stash, url, endpoint, opts \\ []) do
+  def start_link({registry, id}, stash, url, endpoint, opts \\ []) when is_binary(id) do
     name = {:via, Registry, {registry, id}}
     GenSocketClient.start_link(
       __MODULE__,
@@ -81,16 +81,8 @@ defmodule PathfinderSocket.Client do
     {:ok, state}
   end
 
-  def handle_message("games:" <> game_id, event, payload, transport, state) do
-    if game_id == Integer.to_string(state.game_id) do
-      _handle_message(event, payload, transport, state)
-    else
-      {:ok, state}
-    end
-  end
-  def handle_message(_topic, _event, _payload, _transport, state), do: {:ok, state}
-
-  defp _handle_message("next", %{"state" => ["turn", @bot_id]}, transport, state) do
+  def handle_message("games:" <> id, "next", %{"state" => ["turn", @bot_id]}, transport, %{game_id: game_id} = state)
+      when game_id == id do
     args = {ai, _, move} = AI.move(state.ai, state.board)
     move = serialize_change(move)
 
@@ -102,39 +94,27 @@ defmodule PathfinderSocket.Client do
     )
     {:ok, %{state | ai: ai, curr_ref: ref, curr_args: args}}
   end
-  defp _handle_message("next", %{"state" => ["win", _]}, _transport, state) do
+  def handle_message("games:" <> id, "next", %{"state" => ["win", _]}, _t, %{game_id: game_id} = state)
+      when game_id == id do
     {:stop, :normal, state}
   end
-  defp _handle_message(event, payload, _transport, state) do
-    Logger.info("#{event}: #{inspect payload}")
+  def handle_message(topic, event, payload, _transport, state) do
+    Logger.info("Topic #{topic} #{event}: #{inspect payload}")
     {:ok, state}
   end
 
-  def handle_reply("games:" <> game_id, ref, payload, transport, state) do
-    if game_id == Integer.to_string(state.game_id) do
-      _handle_reply(ref, payload, transport, state)
-    else
-      {:ok, state}
-    end
+  def handle_reply("games:" <> id, ref, %{"status" => "ok"}, _t, %{curr_ref: curr_ref, game_id: game_id} = state)
+      when ref == curr_ref and game_id == id do
+    {_, _, {fun, fun_args}} = state.curr_args
+    ai = Kernel.apply(AI, :move_success, Tuple.to_list(state.curr_args))
+    {:ok, board} = Kernel.apply(Board, fun, [state.board | fun_args])
+    {:ok, %{state | ai: ai, board: board, curr_ref: nil, curr_args: nil}}
   end
-  def handle_reply(_topic, _ref, _payload, _transport, state), do: {:ok, state}
-
-  def _handle_reply(
-    ref,
-    %{"status" => status},
-    _transport,
-    %{curr_ref: curr_ref, curr_args: curr_args, board: board} = state
-  ) when ref == curr_ref do
-    if status == "ok" do
-      {_, _, {fun, fun_args}} = curr_args
-      ai = Kernel.apply(AI, :move_success, Tuple.to_list(curr_args))
-      {:ok, board} = Kernel.apply(Board, fun, [board | fun_args])
-      {:ok, %{state | ai: ai, board: board, curr_ref: nil, curr_args: nil}}
-    else
-      {:ok, %{state | curr_ref: nil, curr_args: nil}}
-    end
+  def handle_reply("games:" <> id, ref, _p, _t, %{curr_ref: curr_ref, game_id: game_id} = state)
+      when ref == curr_ref and game_id == id do
+    {:ok, %{state | curr_ref: nil, curr_args: nil}}
   end
-  def _handle_reply(_ref, payload, _transport, state) do
+  def handle_reply(_topic, _ref, payload, _transport, state) do
     Logger.info("reply: #{inspect payload}")
     {:ok, state}
   end

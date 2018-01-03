@@ -19,13 +19,13 @@ defmodule PathfinderWeb.Web.SocketChannelTest do
     {:ok, socket} = connect(UserSocket, %{"token" => user_token})
 
     registry = :"#{context.test}_registry"
-    id = {registry, game.id}
+    id = {registry, Integer.to_string(game.id)}
     {:ok, _} = Registry.start_link(:unique, registry)
     {:ok, stash} = Stash.start_link(name: :"#{context.test}_stash")
 
-    assert is_nil(Stash.get(stash, game.id))
+    assert is_nil(Stash.get(stash, Integer.to_string(game.id)))
     {:ok, _} = Client.start_link(id, stash, @socket_url, @endpoint)
-    assert not is_nil(Stash.get(stash, game.id))
+    assert not is_nil(Stash.get(stash, Integer.to_string(game.id)))
 
     {:ok, game: game, user_socket: socket}
   end
