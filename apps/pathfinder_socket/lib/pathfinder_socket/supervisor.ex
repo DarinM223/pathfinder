@@ -1,22 +1,20 @@
 defmodule PathfinderSocket.Supervisor do
-  use Application
   use Supervisor
 
+  @registry Application.get_env(:pathfinder_socket, :registry)
   @socket_url "ws://localhost:4000/socket/websocket"
 
-  def start(_type, _args) do
-    PathfinderSocket.Supervisor.start_link([name: __MODULE__])
-  end
-
-  def start_link(opts \\ []) do
+  def start_link(opts \\ [name: PathfinderSocket.Supervisor]) do
     Supervisor.start_link(__MODULE__, :ok, opts)
   end
 
-  def start_child(supervisor, url \\ @socket_url, game_id, endpoint) do
-    Supervisor.start_child(
+  def start_child(supervisor, id, stash, url, endpoint) do
+    socket_id = {@registry, id}
+    result = Supervisor.start_child(
       supervisor,
-      [url, game_id, endpoint]
+      [socket_id, stash, url, endpoint]
     )
+    with {:ok, _} <- result, do: {:ok, socket_id}
   end
 
   def init(:ok) do

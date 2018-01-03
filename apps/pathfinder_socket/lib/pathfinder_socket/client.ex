@@ -7,28 +7,42 @@ defmodule PathfinderSocket.Client do
   alias Phoenix.Channels.GenSocketClient
   alias Pathfinder.AI
   alias Pathfinder.Board
+  alias Pathfinder.Stash
 
   @behaviour GenSocketClient
   @bot_id -2
 
-  def start_link(url, game_id, endpoint) do
+  def start_link({registry, id}, stash, url, endpoint, opts \\ []) do
+    name = {:via, Registry, {registry, id}}
     GenSocketClient.start_link(
       __MODULE__,
       Phoenix.Channels.GenSocketClient.Transport.WebSocketClient,
-      {url, game_id, endpoint}
+      {stash, url, id, endpoint},
+      [],
+      [{:name, name} | opts]
     )
   end
 
-  def init({url, game_id, endpoint}) do
-    state = %{
-      game_id: game_id,
-      ai: AI.new(),
-      board: Board.new(),
-      game_state: nil,
-      curr_ref: nil,
-      curr_args: nil
-    }
-    token = Phoenix.Token.sign(endpoint, "bot", game_id)
+  def init({stash, url, id, endpoint}) do
+    if state = Stash.get(stash, id) do
+      connect(url, state, id, endpoint)
+    else
+      state = %{
+        game_id: id,
+        ai: AI.new(),
+        board: Board.new(),
+        game_state: nil,
+        curr_ref: nil,
+        curr_args: nil,
+        stash: stash
+      }
+      Stash.set(stash, id, state)
+      connect(url, state, id, endpoint)
+    end
+  end
+
+  defp connect(url, state, id, endpoint) do
+    token = Phoenix.Token.sign(endpoint, "bot", id)
     {:connect, url, [token: token], state}
   end
 
@@ -147,6 +161,13 @@ defmodule PathfinderSocket.Client do
   def handle_info(message, _transport, state) do
     Logger.warn("Unhandled message #{inspect message}")
     {:ok, state}
+  end
+  def handle_call(:state, _from, state) do
+    {:reply, state, state}
+  end
+
+  def terminate(_reason, %{stash: stash, game_id: id} = state) do
+    Stash.set(stash, id, state)
   end
 
   def convert_to_lists(params) do

@@ -7,16 +7,25 @@ defmodule PathfinderWeb.Web.SocketChannelTest do
   alias PathfinderSocket.Client
   alias Pathfinder.AI
   alias Pathfinder.Board
+  alias Pathfinder.Stash
 
   @socket_url "ws://localhost:4001/socket/websocket"
 
-  setup do
+  setup context do
     {:ok, user} = insert_user(%{username: "bob"})
     {:ok, game} = insert_game(user, %{other_user_name: "dave", other_user_type: "bot"})
 
     user_token = Phoenix.Token.sign(@endpoint, "user socket", user.id)
     {:ok, socket} = connect(UserSocket, %{"token" => user_token})
-    {:ok, _} = Client.start_link(@socket_url, game.id, @endpoint)
+
+    registry = :"#{context.test}_registry"
+    id = {registry, game.id}
+    {:ok, _} = Registry.start_link(:unique, registry)
+    {:ok, stash} = Stash.start_link(name: :"#{context.test}_stash")
+
+    assert is_nil(Stash.get(stash, game.id))
+    {:ok, _} = Client.start_link(id, stash, @socket_url, @endpoint)
+    assert not is_nil(Stash.get(stash, game.id))
 
     {:ok, game: game, user_socket: socket}
   end
