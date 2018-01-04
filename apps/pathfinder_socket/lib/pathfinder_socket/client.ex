@@ -24,6 +24,7 @@ defmodule PathfinderSocket.Client do
   end
 
   def init({stash, url, id, endpoint}) do
+    Process.flag(:trap_exit, true)
     if state = Stash.get(stash, id) do
       connect(url, state, id, endpoint)
     else
@@ -123,7 +124,7 @@ defmodule PathfinderSocket.Client do
     Logger.info("connecting")
     {:connect, state}
   end
-  def handle_info({:join, topic}, transport, _state) do
+  def handle_info({:join, topic}, transport, state) do
     Logger.info("joining the topic #{topic}")
     case GenSocketClient.join(transport, topic) do
       {:error, reason} ->
@@ -131,6 +132,8 @@ defmodule PathfinderSocket.Client do
         Process.send_after(self(), {:join, topic}, :timer.seconds(1))
       {:ok, _ref} -> :ok
     end
+
+    {:ok, state}
   end
   def handle_info(:send_build_changes, transport, state) do
     Logger.info("sending build changes")
