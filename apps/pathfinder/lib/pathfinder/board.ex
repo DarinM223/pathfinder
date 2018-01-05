@@ -16,6 +16,7 @@ defmodule Pathfinder.Board do
   """
 
   alias Pathfinder.Board
+  alias Pathfinder.Board.Walls
 
   @row_size Application.get_env(:pathfinder, :row_size)
   @column_size Application.get_env(:pathfinder, :column_size)
@@ -76,44 +77,14 @@ defmodule Pathfinder.Board do
   https://en.wikipedia.org/wiki/Maze_generation_algorithm
   """
   def generate_changes do
-    _set_all_walls()
-    |> _remove_random_walls({1, 1}, %{})
-    |> elem(0)
-    |> _add_goal()
+    Walls.set_all(@row_size, @column_size)
+    |> Walls.remove_random({1, 1})
+    |> Walls.to_change_list()
+    |> add_goal()
     |> Enum.reverse()
   end
 
-  defp _set_all_walls do
-    cells = for row <- 1..@column_size, col <- 1..@row_size, do: {row, col}
-    Enum.reduce(cells, [], fn {row, col}, changes ->
-      set_wall_changes =
-        valid_neighbors({row, col})
-        |> Stream.map(&elem(&1, 1))
-        |> Enum.map(&{:set_wall, [{row, col}, &1, true]})
-
-      set_wall_changes ++ changes
-    end)
-  end
-
-  defp _remove_random_walls(changes, {row, col}, visited) do
-    visited = Map.put(visited, index(row, col), true)
-    neighbors =
-      valid_neighbors({row, col})
-      |> Stream.map(&elem(&1, 1))
-      |> Enum.shuffle()
-
-    Enum.reduce(neighbors, {changes, visited}, fn cell, {changes, visited} ->
-      if not Map.has_key?(visited, index(cell)) do
-        change = {:set_wall, [{row, col}, cell, false]}
-        changes = [change | changes]
-        _remove_random_walls(changes, cell, visited)
-      else
-        {changes, visited}
-      end
-    end)
-  end
-
-  defp _add_goal(changes) do
+  defp add_goal(changes) do
     goal_pos = {Enum.random(1..@column_size), Enum.random(1..@row_size)}
     [{:place_goal, [goal_pos]} | changes]
   end
@@ -508,13 +479,13 @@ defmodule Pathfinder.Board do
     if position = Map.get(board, :goal) do
       queue = :queue.in(position, :queue.new())
       discovered = Map.put(%{}, index(position), true)
-      _validate_goal(board, queue, discovered)
+      validate_goal(board, queue, discovered)
     else
       false
     end
   end
 
-  defp _validate_goal(board, queue, discovered) do
+  defp validate_goal(board, queue, discovered) do
     {value, queue} = :queue.out(queue)
     case value do
       :empty ->
@@ -527,14 +498,14 @@ defmodule Pathfinder.Board do
             false
           cell ->
             {queue, discovered} =
-              _add_next_positions(pos, cell, queue, discovered)
+              add_next_positions(pos, cell, queue, discovered)
 
-            _validate_goal(board, queue, discovered)
+            validate_goal(board, queue, discovered)
         end
     end
   end
 
-  defp _add_next_positions(pos, cell, queue, discovered) do
+  defp add_next_positions(pos, cell, queue, discovered) do
     filter_pos = fn
       {:ok, pos} -> not Map.has_key?(discovered, index(pos))
       _ -> false
