@@ -6,5 +6,6 @@
         game_names: make_game_names(@games, &(&1.other_user_name)),
         path: &replay_path(@conn, :show, &1),
         finish_text: "Delete",
-        finish_path: &game_path(@conn, :delete, &1) %>
+        finish_path: &game_path(@conn, :delete, &1),
+        finish_method: :delete %>
 </div>

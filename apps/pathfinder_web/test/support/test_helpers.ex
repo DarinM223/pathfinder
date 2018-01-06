@@ -1,6 +1,8 @@
 defmodule PathfinderWeb.TestHelpers do
   alias PathfinderWeb.Accounts
   alias PathfinderWeb.Data
+  alias PathfinderWeb.Data.Change
+  alias PathfinderWeb.Repo
 
   def insert_user(attrs \\ %{}) do
     changes = Map.merge(%{
@@ -19,5 +21,12 @@ defmodule PathfinderWeb.TestHelpers do
       other_user_type: "nonexisting"
     }, attrs)
     Data.create_user_game(user, changes)
+  end
+
+  def insert_change(game, attrs \\ %{}) do
+    game
+    |> Ecto.build_assoc(:changes)
+    |> Change.changeset(attrs)
+    |> Repo.insert()
   end
 end
