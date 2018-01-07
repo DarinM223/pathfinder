@@ -72,8 +72,8 @@ defmodule PathfinderSocket.Client do
   end
 
   def handle_join_error(topic, payload, _transport, state) do
-    Logger.error("join error from the topic #{topic}: #{inspect payload}")
-    {:ok, state}
+    Logger.info("join error from the topic #{topic}: #{inspect payload}")
+    {:stop, :normal, state}
   end
 
   def handle_channel_closed(topic, payload, _transport, state) do
