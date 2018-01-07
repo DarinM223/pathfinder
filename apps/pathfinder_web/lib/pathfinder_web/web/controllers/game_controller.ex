@@ -38,6 +38,13 @@ defmodule PathfinderWeb.Web.GameController do
   def show(conn, %{"id" => id}, user) do
     game = Data.get_user_game!(user, id)
 
+    # Start up game socket client if it isn't started for a bot game.
+    if game.winner == nil and
+       game.other_user_id == -2 and
+       not PathfinderSocket.has_worker?(id) do
+      {:ok, _} = PathfinderSocket.add(id, PathfinderWeb.Web.Endpoint)
+    end
+
     render conn, "show.html", game: game
   end
 

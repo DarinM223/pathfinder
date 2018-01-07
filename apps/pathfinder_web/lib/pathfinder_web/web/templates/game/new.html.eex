@@ -7,6 +7,8 @@
       <%= label f, :nonexisting, "not a registered user" %>
       <%= radio_button f, :other_user_type, "existing" %>
       <%= label f, :existing, "a registered user" %>
+      <%= radio_button f, :other_user_type, "bot" %>
+      <%= label f, :bot, "a bot" %>
       <%= error_tag f, :other_user_type %>
     </div>
 

@@ -103,6 +103,7 @@ defmodule PathfinderWeb.Web.GameControllerTest do
   @tag login_as: "bob"
   test ":delete successfully deletes game created by logged in player", %{conn: conn, user: user} do
     {:ok, game} = insert_game(user, %{other_user_name: "dave"})
+    insert_change(game, %{args: %{"a" => "b"}, name: "Game", user_id: user.id})
     before_count = count_games()
 
     conn = delete conn, game_path(conn, :delete, game.id)

@@ -37,8 +37,8 @@ defmodule Pathfinder do
   @doc """
   Returns the id of the worker if the game is already running, otherwise returns nil.
   """
-  def worker_id(id, stash \\ Pathfinder.Stash) do
-    if stash.get(stash, id), do: {@registry, id}, else: nil
+  def worker_id(id, registry \\ @registry, stash \\ Pathfinder.Stash) do
+    if Pathfinder.Stash.get(stash, id), do: {registry, id}, else: nil
   end
 
   @doc """

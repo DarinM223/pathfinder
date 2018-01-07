@@ -8,7 +8,7 @@ defmodule PathfinderWeb.Data.Game do
 
   schema "games" do
     belongs_to :user, PathfinderWeb.Accounts.User
-    has_many :changes, PathfinderWeb.Data.Change
+    has_many :changes, PathfinderWeb.Data.Change, on_delete: :delete_all
     field :other_user_id, :integer
     field :shareid, :string
     field :accessed, :boolean, default: false
@@ -67,6 +67,8 @@ defmodule PathfinderWeb.Data.Game do
         end
       "nonexisting" ->
         put_change(changeset, :other_user_id, -1)
+      "bot" ->
+        put_change(changeset, :other_user_id, -2)
       _ ->
         add_error(changeset, :other_user_type, "must be a valid type")
     end

@@ -23,21 +23,30 @@ defmodule Pathfinder.AITest do
 
   test "simulates ai in board and tests if it successfully reaches the goal" do
     for _ <- 1..100 do
-      assert _simulation(AI.new(), Board.generate())
+      assert _simulation(AI.new(), Board.new(), Board.generate())
     end
   end
 
-  def _simulation(ai, board) do
-    args = AI.move(ai, board)
-    {_, _, {fun, fun_args}} = args
+  defp _simulation(ai, seen_board, board) do
+    args = AI.move(ai, seen_board)
+    assert {ai, _, {fun, fun_args}} = args
 
-    ai = Kernel.apply(AI, :move_success, Tuple.to_list(args))
-    {:ok, board} = Kernel.apply(Board, fun, [board | fun_args])
+    {ai, seen_board, board} =
+      with {:ok, board} <- Kernel.apply(Board, fun, [board | fun_args]) do
+        {:ok, seen_board} = Kernel.apply(Board, fun, [seen_board | fun_args])
+        {
+          Kernel.apply(AI, :move_success, Tuple.to_list(args)),
+          seen_board,
+          board
+        }
+      else
+        _ -> {ai, seen_board, board}
+      end
 
     if Board.player_location(board) == Board.goal_location(board) do
       true
     else
-      _simulation(ai, board)
+      _simulation(ai, seen_board, board)
     end
   end
 end

@@ -15,6 +15,9 @@ defmodule Pathfinder.Board do
   being the top, right, bottom, and left walls respectively.
   """
 
+  alias Pathfinder.Board
+  alias Pathfinder.Board.Walls
+
   @row_size Application.get_env(:pathfinder, :row_size)
   @column_size Application.get_env(:pathfinder, :column_size)
   @directions [
@@ -55,58 +58,6 @@ defmodule Pathfinder.Board do
     |> _init_board()
   end
 
-  @doc """
-  Creates a board with a random maze.
-
-  Uses the recursive backtracking algorithm described in:
-  https://en.wikipedia.org/wiki/Maze_generation_algorithm
-  """
-  def generate do
-    cells =
-      for _ <- 1..@column_size, col <- 1..@row_size do
-        if col == 1 do
-          {nil, true, true, true, false}
-        else
-          {nil, true, true, true, true}
-        end
-      end
-
-    cells
-    |> _init_board()
-    |> _generate_maze({1, 1}, %{})
-    |> elem(0)
-    |> _set_goal()
-  end
-
-  # Sets the goal to a random position in the maze.
-  defp _set_goal(board) do
-    goal_pos = {Enum.random(1..@column_size), Enum.random(1..@row_size)}
-
-    board
-    |> Map.update(index(goal_pos), nil, &Kernel.put_elem(&1, 0, :goal))
-    |> Map.put(:goal, goal_pos)
-  end
-
-  # Recursive backtracking algorithm for randomly generating maze.
-  defp _generate_maze(board, {row, col}, visited) do
-    visited = Map.put(visited, index(row, col), true)
-    neighbors =
-      @directions
-      |> Stream.map(&next({row, col}, &1))
-      |> Stream.filter(fn {:ok, _} -> true; _ -> false end)
-      |> Stream.map(&elem(&1, 1))
-      |> Enum.shuffle()
-
-    Enum.reduce(neighbors, {board, visited}, fn cell, {board, visited} ->
-      if not Map.has_key?(visited, index(cell)) do
-        {:ok, board} = set_wall(board, {row, col}, cell, false)
-        _generate_maze(board, cell, visited)
-      else
-        {board, visited}
-      end
-    end)
-  end
-
   # Converts a board to from a list of cells to a map of indexes to cells
   # and sets the player and goal to nil.
   defp _init_board(cells) do
@@ -117,6 +68,51 @@ defmodule Pathfinder.Board do
        end)
     |> Map.put(:player, nil)
     |> Map.put(:goal, nil)
+  end
+
+  @doc """
+  Generates changes that creates a board with a random maze.
+
+  Uses the recursive backtracking algorithm described in:
+  https://en.wikipedia.org/wiki/Maze_generation_algorithm
+  """
+  def generate_changes do
+    Walls.set_all(@row_size, @column_size)
+    |> Walls.remove_random({1, 1})
+    |> Walls.to_change_list()
+    |> add_goal()
+    |> Enum.reverse()
+  end
+
+  defp add_goal(changes) do
+    goal_pos = {Enum.random(1..@column_size), Enum.random(1..@row_size)}
+    [{:place_goal, [goal_pos]} | changes]
+  end
+
+  @doc """
+  Applies a list of changes to the board.
+
+      iex> {:ok, board} = Pathfinder.Board.apply_changes(Pathfinder.Board.new(), [{:set_wall, [{1, 1}, {1, 2}, true]}])
+      iex> Map.get(board, Pathfinder.Board.index({1, 1})) # Check that wall was set
+      {nil, true, true, false, false}
+
+      iex> Pathfinder.Board.apply_changes(Pathfinder.Board.new(), [{:set_wall, [{1, 1}, {1, 0}, true]}])
+      :error
+
+  """
+  def apply_changes(board, changes) do
+    Enum.reduce(changes, {:ok, board}, fn
+      {fun, args}, {:ok, board} -> Kernel.apply(Board, fun, [board | args])
+      _, err -> err
+    end)
+  end
+
+  @doc """
+  Creates a board with a random maze.
+  """
+  def generate do
+    {:ok, board} = apply_changes(Board.new(), generate_changes())
+    board
   end
 
   @doc """
@@ -483,13 +479,13 @@ defmodule Pathfinder.Board do
     if position = Map.get(board, :goal) do
       queue = :queue.in(position, :queue.new())
       discovered = Map.put(%{}, index(position), true)
-      _validate_goal(board, queue, discovered)
+      validate_goal(board, queue, discovered)
     else
       false
     end
   end
 
-  defp _validate_goal(board, queue, discovered) do
+  defp validate_goal(board, queue, discovered) do
     {value, queue} = :queue.out(queue)
     case value do
       :empty ->
@@ -502,14 +498,14 @@ defmodule Pathfinder.Board do
             false
           cell ->
             {queue, discovered} =
-              _add_next_positions(pos, cell, queue, discovered)
+              add_next_positions(pos, cell, queue, discovered)
 
-            _validate_goal(board, queue, discovered)
+            validate_goal(board, queue, discovered)
         end
     end
   end
 
-  defp _add_next_positions(pos, cell, queue, discovered) do
+  defp add_next_positions(pos, cell, queue, discovered) do
     filter_pos = fn
       {:ok, pos} -> not Map.has_key?(discovered, index(pos))
       _ -> false

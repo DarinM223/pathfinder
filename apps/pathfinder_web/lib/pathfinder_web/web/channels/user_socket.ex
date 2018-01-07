@@ -37,7 +37,12 @@ defmodule PathfinderWeb.Web.UserSocket do
           {:ok, _} ->
             {:ok, assign(socket, :user_id, -1)}
           {:error, _reason} ->
-            :error
+            case Phoenix.Token.verify(PathfinderWeb.Web.Endpoint, "bot", token, max_age: @max_age) do
+              {:ok, _} ->
+                {:ok, assign(socket, :user_id, -2)}
+              {:error, _reason} ->
+                :error
+            end
         end
     end
   end

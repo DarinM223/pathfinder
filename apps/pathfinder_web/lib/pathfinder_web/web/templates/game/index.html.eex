@@ -7,7 +7,8 @@
                                    game_names: make_game_names(@created_games, &(&1.other_user_name)),
                                    path: &game_path(@conn, :show, &1),
                                    finish_text: "Forfeit",
-                                   finish_path: &game_path(@conn, :finish, &1) %>
+                                   finish_path: &game_path(@conn, :finish, &1),
+                                   finish_method: :post %>
     </div>
     <div class="col-md-6">
       <h2 style="display: inline;">Games you are participating in:</h2>
@@ -15,7 +16,8 @@
                                    game_names: make_game_names(@participating_games, &(&1.user.username)),
                                    path: &play_path(@conn, :show, &1.shareid),
                                    finish_text: "Forfeit",
-                                   finish_path: &game_path(@conn, :finish, &1) %>
+                                   finish_path: &game_path(@conn, :finish, &1),
+                                   finish_method: :post %>
     </div>
   </div>
 </div>

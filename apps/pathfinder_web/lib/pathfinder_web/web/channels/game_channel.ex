@@ -1,24 +1,29 @@
 defmodule PathfinderWeb.Web.GameChannel do
   use PathfinderWeb.Web, :channel
 
+  require Logger
+
   alias PathfinderWeb.Data
   alias PathfinderWeb.Web.ActionView
   alias PathfinderWeb.Web.PlayerView
 
   def join("games:" <> game_id, _params, socket) do
-    game_id = game_id |> Integer.parse() |> elem(0)
-    game = Data.get_game!(game_id)
-    user_id = socket.assigns.user_id
+    with {game_id, _} <- Integer.parse(game_id) do
+      game = Data.get_game!(game_id)
+      user_id = socket.assigns.user_id
 
-    if is_valid_user?(game, user_id) do
-      handle_user_join(
-        Pathfinder.worker_id(game_id),
-        game,
-        user_id,
-        socket
-      )
+      if is_valid_user?(game, user_id) and is_nil(game.winner) do
+        handle_user_join(
+          Pathfinder.worker_id(game_id),
+          game,
+          user_id,
+          socket
+        )
+      else
+        {:error, "User is not a player in this game"}
+      end
     else
-      {:error, "User is not a player in this game"}
+      _ -> {:error, "Invalid game id"}
     end
   end
 
