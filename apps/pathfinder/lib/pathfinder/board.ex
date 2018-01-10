@@ -87,13 +87,14 @@ defmodule Pathfinder.Board do
   end
 
   defp add_goal(changes) do
-    # Try to pick a goal with three walls.
+    # Try to pick a random goal with three walls.
     possible_goals =
       Enum.reduce(changes, %{}, fn
         {:set_wall, [pos, _, true]}, map ->
-          Map.update(map, pos, 1, &(&1 + 1))
+          Map.update(map, pos, initial_walls(pos) + 1, &(&1 + 1))
         {:set_wall, [row, true]}, map ->
-          Map.update(map, {row, 1}, 1, &(&1 + 1))
+          pos = {row, 1}
+          Map.update(map, pos, initial_walls(pos) + 1, &(&1 + 1))
       end)
       |> Enum.filter(fn {_, num_walls} -> num_walls >= 3 end)
       |> Enum.map(&elem(&1, 0))
@@ -107,6 +108,13 @@ defmodule Pathfinder.Board do
 
     [{:place_goal, [goal_pos]} | changes]
   end
+
+  defp initial_walls({1, @row_size}), do: 2
+  defp initial_walls({@column_size, @row_size}), do: 2
+  defp initial_walls({1, _}), do: 1
+  defp initial_walls({@column_size, _}), do: 1
+  defp initial_walls({_, @row_size}), do: 1
+  defp initial_walls(_), do: 0
 
   @doc """
   Applies a list of changes to the board.
