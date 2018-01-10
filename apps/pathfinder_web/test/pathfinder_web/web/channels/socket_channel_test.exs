@@ -3,7 +3,6 @@ defmodule PathfinderWeb.Web.SocketChannelTest do
   import PathfinderWeb.TestHelpers
 
   alias PathfinderWeb.Web.UserSocket
-  alias PathfinderSocket.Supervisor
   alias PathfinderSocket.Client
   alias Pathfinder.AI
   alias Pathfinder.Board

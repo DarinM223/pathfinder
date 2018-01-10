@@ -48,12 +48,26 @@ defmodule Pathfinder.Board.Walls do
   end
 
   @doc """
+  Adds random row walls, excluding the entry row.
+  """
+  def add_random_row_walls(walls, col_size, entry_row) do
+    Enum.reduce(1..col_size, walls, fn row, walls ->
+      if row != entry_row and Enum.random(0..1) == 1 do
+        MapSet.put(walls, row)
+      else
+        walls
+      end
+    end)
+  end
+
+  @doc """
   Converts the walls into a list of :set_wall changes that
   can be applied by a Board.
   """
   def to_change_list(walls) do
-    Enum.reduce(walls, [], fn {pos1, pos2}, list ->
-      [{:set_wall, [pos1, pos2, true]} | list]
+    Enum.reduce(walls, [], fn
+      {pos1, pos2}, list -> [{:set_wall, [pos1, pos2, true]} | list]
+      row, list -> [{:set_wall, [row, true]} | list]
     end)
   end
 end

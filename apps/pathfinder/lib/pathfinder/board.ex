@@ -55,12 +55,12 @@ defmodule Pathfinder.Board do
              {nil, false, false, false, false}
          end
        end)
-    |> _init_board()
+    |> init_board()
   end
 
   # Converts a board to from a list of cells to a map of indexes to cells
   # and sets the player and goal to nil.
-  defp _init_board(cells) do
+  defp init_board(cells) do
     cells
     |> Stream.with_index(0)
     |> Enum.reduce(%{}, fn {cell, index}, acc ->
@@ -77,15 +77,34 @@ defmodule Pathfinder.Board do
   https://en.wikipedia.org/wiki/Maze_generation_algorithm
   """
   def generate_changes do
+    entry_row = Enum.random(1..@column_size)
     Walls.set_all(@row_size, @column_size)
-    |> Walls.remove_random({1, 1})
+    |> Walls.remove_random({entry_row, 1})
+    |> Walls.add_random_row_walls(@column_size, entry_row)
     |> Walls.to_change_list()
     |> add_goal()
     |> Enum.reverse()
   end
 
   defp add_goal(changes) do
-    goal_pos = {Enum.random(1..@column_size), Enum.random(1..@row_size)}
+    # Try to pick a goal with three walls.
+    possible_goals =
+      Enum.reduce(changes, %{}, fn
+        {:set_wall, [pos, _, true]}, map ->
+          Map.update(map, pos, 1, &(&1 + 1))
+        {:set_wall, [row, true]}, map ->
+          Map.update(map, {row, 1}, 1, &(&1 + 1))
+      end)
+      |> Enum.filter(fn {_, num_walls} -> num_walls >= 3 end)
+      |> Enum.map(&elem(&1, 0))
+
+    goal_pos =
+      if not Enum.empty?(possible_goals) do
+        Enum.random(possible_goals)
+      else
+        {Enum.random(1..@column_size), Enum.random(1..@row_size)}
+      end
+
     [{:place_goal, [goal_pos]} | changes]
   end
 

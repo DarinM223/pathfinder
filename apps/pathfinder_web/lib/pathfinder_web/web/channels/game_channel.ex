@@ -128,7 +128,7 @@ defmodule PathfinderWeb.Web.GameChannel do
   @allowed_actions ["place_goal", "set_wall", "place_player", "remove_player", "move_player"]
 
   defp convert_action(%{"name" => name, "params" => params})
-      when is_binary(name) and is_list(params) and name in @allowed_actions do
+       when is_binary(name) and is_list(params) and name in @allowed_actions do
     convert_to_tuples = fn
       l when is_list(l) -> List.to_tuple(l)
       e -> e
