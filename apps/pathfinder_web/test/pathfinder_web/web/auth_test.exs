@@ -77,14 +77,22 @@ defmodule PathfinderWeb.AuthTest do
   end
 
   test "login with not found user", %{conn: conn} do
-    assert {:error, :not_found, _} =
-      Auth.login_with_password(conn, "me", "secret", repo: Repo)
+    assert {:error, :not_found, _} = Auth.login_with_password(
+      conn,
+      "me",
+      "secret",
+      repo: Repo
+    )
   end
 
   test "login with password mismatch", %{conn: conn} do
     {:ok, _} = insert_user(%{username: "me", password: "secret", password_confirm: "secret"})
 
-    assert {:error, :unauthorized, _} =
-      Auth.login_with_password(conn, "me", "wrong", repo: Repo)
+    assert {:error, :unauthorized, _} = Auth.login_with_password(
+      conn,
+      "me",
+      "wrong",
+      repo: Repo
+    )
   end
 end

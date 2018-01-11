@@ -6,12 +6,14 @@ defmodule Pathfinder.GameTest do
   alias Pathfinder.Player
 
   test "build/3 should ignore unallowed build actions" do
-    changes = [{:bleargh, []},
-               {:remove_player, []},
-               {:place_player, [1]},
-               {:move_player, [2]},
-               {:place_goal, [{3, 4}]},
-               {:set_wall, [1, true]}]
+    changes = [
+      {:bleargh, []},
+      {:remove_player, []},
+      {:place_player, [1]},
+      {:move_player, [2]},
+      {:place_goal, [{3, 4}]},
+      {:set_wall, [1, true]}
+    ]
     {:ok, game} = Game.build(Game.new(0, 1), 1, changes)
 
     {:ok, board} = Board.place_goal(Board.new(), {3, 4})
@@ -30,11 +32,13 @@ defmodule Pathfinder.GameTest do
   end
 
   test "build/3 should return error for invalid boards" do
-    changes = [{:place_goal, [{3, 4}]},
-               {:set_wall, [{2, 4}, {3, 4}, true]},
-               {:set_wall, [{3, 3}, {3, 4}, true]},
-               {:set_wall, [{3, 5}, {3, 4}, true]},
-               {:set_wall, [{4, 4}, {3, 4}, true]}]
+    changes = [
+      {:place_goal, [{3, 4}]},
+      {:set_wall, [{2, 4}, {3, 4}, true]},
+      {:set_wall, [{3, 3}, {3, 4}, true]},
+      {:set_wall, [{3, 5}, {3, 4}, true]},
+      {:set_wall, [{4, 4}, {3, 4}, true]}
+    ]
     assert Game.build(Game.new(0, 1), 1, changes) == :error
   end
 
@@ -49,8 +53,10 @@ defmodule Pathfinder.GameTest do
     {:ok, p2_board} = Board.place_goal(Board.new(), {2, 4})
 
     assert game.state == {:turn, 0} or game.state == {:turn, 1}
-    assert game.players == %{0 => %{Player.new() | board: p1_board},
-                             1 => %{Player.new() | board: p2_board}}
+    assert game.players == %{
+      0 => %{Player.new() | board: p1_board},
+      1 => %{Player.new() | board: p2_board}
+    }
   end
 
   test "turn/3 should update the player's enemy board and the enemy's board" do

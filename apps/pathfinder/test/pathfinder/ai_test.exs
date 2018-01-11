@@ -23,11 +23,11 @@ defmodule Pathfinder.AITest do
 
   test "simulates ai in board and tests if it successfully reaches the goal" do
     for _ <- 1..100 do
-      assert _simulation(AI.new(), Board.new(), Board.generate())
+      assert simulation(AI.new(), Board.new(), Board.generate())
     end
   end
 
-  defp _simulation(ai, seen_board, board) do
+  defp simulation(ai, seen_board, board) do
     args = AI.move(ai, seen_board)
     assert {ai, _, {fun, fun_args}} = args
 
@@ -46,7 +46,7 @@ defmodule Pathfinder.AITest do
     if Board.player_location(board) == Board.goal_location(board) do
       true
     else
-      _simulation(ai, seen_board, board)
+      simulation(ai, seen_board, board)
     end
   end
 end

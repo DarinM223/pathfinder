@@ -39,24 +39,16 @@ defmodule Pathfinder.Board do
     (for row <- 1..@column_size,
          col <- 1..@row_size,
          do: {row, col})
-    |> Stream.map(fn {row, col} ->
-         cond do
-           col == @row_size and row == 1 ->
-             {nil, true, true, false, false} # Walls: top & right
-           col == @row_size and row == @column_size ->
-             {nil, false, true, true, false} # Walls: bottom & right
-           col == @row_size ->
-             {nil, false, true, false, false} # Walls: right
-           row == 1 ->
-             {nil, true, false, false, false} # Walls: top
-           row == @column_size ->
-             {nil, false, false, true, false} # Walls: bottom
-           true ->
-             {nil, false, false, false, false}
-         end
-       end)
+    |> Stream.map(&initial_cell/1)
     |> init_board()
   end
+
+  defp initial_cell({1, @row_size}), do: {nil, true, true, false, false}
+  defp initial_cell({@column_size, @row_size}), do: {nil, false, true, true, false}
+  defp initial_cell({_, @row_size}), do: {nil, false, true, false, false}
+  defp initial_cell({1, _}), do: {nil, true, false, false, false}
+  defp initial_cell({@column_size, _}), do: {nil, false, false, true, false}
+  defp initial_cell(_), do: {nil, false, false, false, false}
 
   # Converts a board to from a list of cells to a map of indexes to cells
   # and sets the player and goal to nil.
@@ -540,8 +532,10 @@ defmodule Pathfinder.Board do
 
     next_positions =
       @directions
-      |> Stream.filter_map(&(not elem(cell, &1)), &next(pos, &1))
-      |> Stream.filter_map(filter_pos, fn {:ok, pos} -> pos end)
+      |> Stream.filter(&(not elem(cell, &1)))
+      |> Stream.map(&next(pos, &1))
+      |> Stream.filter(filter_pos)
+      |> Stream.map(fn {:ok, pos} -> pos end)
 
     Enum.reduce(next_positions, {queue, discovered}, fn pos, {queue, discovered} ->
       {:queue.in(pos, queue), Map.put(discovered, index(pos), true)}

@@ -10,24 +10,32 @@ defmodule PathfinderWeb.DataTest do
   end
 
   test "create_user_game validates other_user_type and other_user_name exists", %{user: user} do
-    assert {:error, _} =
-      Data.create_user_game(user, %{shareid: "blah", accessed: true, winner: 2})
+    assert {:error, _} = Data.create_user_game(user, %{
+      shareid: "blah",
+      accessed: true, winner: 2
+    })
   end
 
   test "create_user_game validates other_user_name refers to a valid user when type is existing", %{user: user} do
-    assert {:error, _} =
-      Data.create_user_game(user, %{other_user_name: "blah", other_user_type: "existing"})
+    assert {:error, _} = Data.create_user_game(user, %{
+      other_user_name: "blah",
+      other_user_type: "existing"
+    })
   end
 
   test "create_user_game validates other_user_type is a valid type", %{user: user} do
     {:ok, other} = insert_user(%{username: "foo"})
-    assert {:error, _} =
-      Data.create_user_game(user, %{other_user_name: other.username, other_user_type: "blah"})
+    assert {:error, _} = Data.create_user_game(user, %{
+      other_user_name: other.username,
+      other_user_type: "blah"
+    })
   end
 
   test "create_user_game validates other_user_name refers to a different user" , %{user: user} do
-    assert {:error, _} =
-      Data.create_user_game(user, %{other_user_name: user.username, other_user_type: "existing"})
+    assert {:error, _} = Data.create_user_game(user, %{
+      other_user_name: user.username,
+      other_user_type: "existing"
+    })
   end
 
   test "create_user_game properly creates new game with existing user", %{user: user} do
@@ -157,8 +165,10 @@ defmodule PathfinderWeb.DataTest do
       {:ok, other_user} = insert_user()
       winner = if rem(num, 2) == 0, do: other_user.id, else: nil
 
-      {:ok, game} = insert_game(user, %{other_user_name: other_user.username,
-                                        other_user_type: "existing"})
+      {:ok, game} = insert_game(user, %{
+        other_user_name: other_user.username,
+        other_user_type: "existing"
+      })
       {:ok, _} = Data.update_game(game, %{winner: winner})
 
       other_user.username

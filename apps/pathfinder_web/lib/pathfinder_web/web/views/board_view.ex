@@ -21,18 +21,22 @@ defmodule PathfinderWeb.Web.BoardView do
            do: [row - 1, col - 1],
            else: (_ -> nil)
 
-    %{player: player,
+    %{
+      player: player,
       goal: goal,
-      cells: cells}
+      cells: cells
+    }
   end
 
   def cell_json(row, col, {data, top, right, bottom, left}) do
-    %{data: data,
+    %{
+      data: data,
       row: row - 1,
       col: col - 1,
       top: top,
       right: right,
       bottom: bottom,
-      left: left}
+      left: left
+    }
   end
 end

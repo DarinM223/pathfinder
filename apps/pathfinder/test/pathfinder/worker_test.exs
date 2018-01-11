@@ -24,8 +24,10 @@ defmodule Pathfinder.WorkerTest do
     id = {registry, worker}
     {:ok, _} = Pathfinder.Worker.start_link(id, stash, {0, 1})
 
-    changes = [{:place_goal, [{2, 2}]},
-               {:set_wall, [{1, 1}, {2, 1}, true]}]
+    changes = [
+      {:place_goal, [{2, 2}]},
+      {:set_wall, [{1, 1}, {2, 1}, true]}
+    ]
     :ok = Pathfinder.build(id, 0, changes)
     {:turn, player} = Pathfinder.build(id, 1, changes)
 

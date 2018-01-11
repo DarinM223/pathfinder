@@ -29,8 +29,7 @@ defmodule PathfinderWeb.Web.Auth do
     |> configure_session(renew: true)
   end
 
-  def login_with_password(conn, username, password, opts) do
-    repo = Keyword.fetch!(opts, :repo)
+  def login_with_password(conn, username, password, _opts) do
     user = Accounts.get_user_by_username(username)
 
     cond do

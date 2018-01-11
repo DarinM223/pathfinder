@@ -4,7 +4,6 @@
 <% end %>
 
 <%= if @token do %>
-  <% IO.puts("#{inspect @token}") %>
   <script>window.unauthorizedUserToken = '<%= @token %>';</script>
 <% end %>
 
