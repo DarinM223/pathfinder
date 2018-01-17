@@ -36,15 +36,18 @@ defmodule PathfinderWeb.Web.GameChannel do
     {:ok, id} = Pathfinder.add(game.id, game.user_id, game.other_user_id)
     {:ok, nil, assign(socket, :worker_id, id)}
   end
+
   # If worker exists, reply with serialized player state.
   defp handle_user_join(worker_id, _, user_id, socket) do
     worker_state = Pathfinder.state(worker_id)
     player = get_in(worker_state, [:players, user_id])
-    rendered_player = Phoenix.View.render(PlayerView, "player.json", %{
-      id: user_id,
-      player: player,
-      state: worker_state.state,
-    })
+
+    rendered_player =
+      Phoenix.View.render(PlayerView, "player.json", %{
+        id: user_id,
+        player: player,
+        state: worker_state.state
+      })
 
     {:ok, rendered_player, assign(socket, :worker_id, worker_id)}
   end
@@ -57,17 +60,21 @@ defmodule PathfinderWeb.Web.GameChannel do
 
   def handle_in("build", %{"changes" => changes}, worker_id, user_id, socket) do
     changes = Enum.map(changes, &convert_action/1)
+
     case Pathfinder.build(worker_id, user_id, changes) do
       {:turn, _} ->
         worker_state = Pathfinder.state(worker_id)
-        broadcast! socket, "next", %{
+
+        broadcast!(socket, "next", %{
           changes: [],
           state: Tuple.to_list(worker_state.state)
-        }
+        })
 
         {:reply, :ok, socket}
+
       :ok ->
         {:reply, :ok, socket}
+
       _ ->
         {:reply, :error, socket}
     end
@@ -80,25 +87,27 @@ defmodule PathfinderWeb.Web.GameChannel do
 
     case turn_result do
       {:win, user_id} ->
-        broadcast! socket, "next", %{
+        broadcast!(socket, "next", %{
           changes: [action],
           state: Tuple.to_list(worker_state.state)
-        }
+        })
 
         handle_win(worker_id, user_id)
         {:reply, :ok, socket}
+
       {:turn, _} ->
-        broadcast! socket, "next", %{
+        broadcast!(socket, "next", %{
           changes: [action],
           state: Tuple.to_list(worker_state.state)
-        }
+        })
 
         {:reply, :ok, socket}
+
       _ ->
-        broadcast! socket, "next", %{
+        broadcast!(socket, "next", %{
           changes: [highlight_position(action)],
           state: Tuple.to_list(worker_state.state)
-        }
+        })
 
         {:reply, :error, socket}
     end
@@ -107,20 +116,25 @@ defmodule PathfinderWeb.Web.GameChannel do
   defp handle_win(worker_id, winner_id) do
     game = worker_id |> elem(1) |> Data.get_game!()
     history = Pathfinder.state(worker_id).history
-    attrs_list = Enum.reduce(history, [], fn {user_id, name, params}, attrs_list ->
-      change = Phoenix.View.render(ActionView, "action.json", %{
-        action: {name, params}
-      })
 
-      time = Ecto.DateTime.utc
-      change =
-        change
-        |> Map.put(:user_id, user_id)
-        |> Map.put(:game_id, game.id)
-        |> Map.put(:inserted_at, time)
-        |> Map.put(:updated_at, time)
-      [change | attrs_list]
-    end)
+    attrs_list =
+      Enum.reduce(history, [], fn {user_id, name, params}, attrs_list ->
+        change =
+          Phoenix.View.render(ActionView, "action.json", %{
+            action: {name, params}
+          })
+
+        time = Ecto.DateTime.utc()
+
+        change =
+          change
+          |> Map.put(:user_id, user_id)
+          |> Map.put(:game_id, game.id)
+          |> Map.put(:inserted_at, time)
+          |> Map.put(:updated_at, time)
+
+        [change | attrs_list]
+      end)
 
     Data.update_on_win(game, winner_id, attrs_list)
   end
@@ -140,9 +154,11 @@ defmodule PathfinderWeb.Web.GameChannel do
   defp highlight_position(%{"name" => "place_player", "params" => [row]}) do
     %{name: "highlight_position", params: [[row, 1]]}
   end
+
   defp highlight_position(%{"name" => "remove_player", "params" => [row]}) do
     %{name: "highlight_position", params: [[row, 1]]}
   end
+
   defp highlight_position(%{"name" => "move_player", "params" => [_, pos]}) do
     %{name: "highlight_position", params: [pos]}
   end

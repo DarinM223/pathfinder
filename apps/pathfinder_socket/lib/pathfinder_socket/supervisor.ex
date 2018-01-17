@@ -9,10 +9,7 @@ defmodule PathfinderSocket.Supervisor do
 
   def start_child(supervisor, id, stash, url, endpoint) do
     socket_id = {@registry, id}
-    result = Supervisor.start_child(
-      supervisor,
-      [socket_id, stash, url, endpoint]
-    )
+    result = Supervisor.start_child(supervisor, [socket_id, stash, url, endpoint])
     with {:ok, _} <- result, do: {:ok, socket_id}
   end
 

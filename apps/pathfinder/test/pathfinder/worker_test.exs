@@ -20,7 +20,11 @@ defmodule Pathfinder.WorkerTest do
     assert Pathfinder.state(id) == :game
   end
 
-  test "worker accepts build and turn messages", %{stash: stash, registry: registry, worker: worker} do
+  test "worker accepts build and turn messages", %{
+    stash: stash,
+    registry: registry,
+    worker: worker
+  } do
     id = {registry, worker}
     {:ok, _} = Pathfinder.Worker.start_link(id, stash, {0, 1})
 
@@ -28,6 +32,7 @@ defmodule Pathfinder.WorkerTest do
       {:place_goal, [{2, 2}]},
       {:set_wall, [{1, 1}, {2, 1}, true]}
     ]
+
     :ok = Pathfinder.build(id, 0, changes)
     {:turn, player} = Pathfinder.build(id, 1, changes)
 

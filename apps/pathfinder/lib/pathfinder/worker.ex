@@ -12,11 +12,7 @@ defmodule Pathfinder.Worker do
 
   def start_link({registry, id}, stash, {player1, player2}, opts \\ []) do
     name = {:via, Registry, {registry, id}}
-    GenServer.start_link(
-      __MODULE__,
-      {stash, id, player1, player2},
-      [{:name, name} | opts]
-    )
+    GenServer.start_link(__MODULE__, {stash, id, player1, player2}, [{:name, name} | opts])
   end
 
   def init({stash, id, player1, player2}) do
@@ -38,8 +34,10 @@ defmodule Pathfinder.Worker do
     case Game.build(game, player, changes) do
       {:turn, player, game} ->
         {:reply, {:turn, player}, {game, info}}
+
       {:ok, game} ->
         {:reply, :ok, {game, info}}
+
       _ ->
         {:reply, :error, {game, info}}
     end
@@ -49,8 +47,10 @@ defmodule Pathfinder.Worker do
     case Game.turn(game, player, action) do
       {:win, player, game} ->
         {:reply, {:win, player}, {game, info}}
+
       {:turn, player, game} ->
         {:reply, {:turn, player}, {game, info}}
+
       {:error, player, game} ->
         {:reply, {:error, player}, {game, info}}
     end

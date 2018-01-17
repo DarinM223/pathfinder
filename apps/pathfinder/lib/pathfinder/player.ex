@@ -16,8 +16,10 @@ defmodule Pathfinder.Player do
   """
   def to_io_list(player) do
     [
-      "Board:\n", Board.to_io_list(player.board),
-      "Enemy board:\n", Board.to_io_list(player.enemy_board)
+      "Board:\n",
+      Board.to_io_list(player.board),
+      "Enemy board:\n",
+      Board.to_io_list(player.enemy_board)
     ]
   end
 end

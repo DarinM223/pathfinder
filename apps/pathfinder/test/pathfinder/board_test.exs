@@ -5,22 +5,22 @@ defmodule Pathfinder.BoardTest do
   alias Pathfinder.Board
 
   test "to_io_list/1 returns the correct output with empty board" do
-    expected =
-      """
-      +---+---+---+---+---+---+
-                              |
-      +   +   +   +   +   +   +
-                              |
-      +   +   +   +   +   +   +
-                              |
-      +   +   +   +   +   +   +
-                              |
-      +   +   +   +   +   +   +
-                              |
-      +   +   +   +   +   +   +
-                              |
-      +---+---+---+---+---+---+
-      """
+    expected = """
+    +---+---+---+---+---+---+
+                            |
+    +   +   +   +   +   +   +
+                            |
+    +   +   +   +   +   +   +
+                            |
+    +   +   +   +   +   +   +
+                            |
+    +   +   +   +   +   +   +
+                            |
+    +   +   +   +   +   +   +
+                            |
+    +---+---+---+---+---+---+
+    """
+
     result =
       Board.new()
       |> Board.to_io_list()
@@ -152,56 +152,70 @@ defmodule Pathfinder.BoardTest do
 
   test "valid?/1 returns false if all the cells in the first column have a left wall" do
     {:ok, board} = Board.place_goal(Board.new(), {3, 4})
-    board = Enum.reduce(1..6, board, fn row, board ->
-      {:ok, board} = Board.set_wall(board, row, true)
-      board
-    end)
+
+    board =
+      Enum.reduce(1..6, board, fn row, board ->
+        {:ok, board} = Board.set_wall(board, row, true)
+        board
+      end)
+
     assert Board.valid?(board) == false
   end
 
   test "valid?/1 returns true if there is a cell in the first column without a left wall" do
     {:ok, board} = Board.place_goal(Board.new(), {3, 4})
-    board = Enum.reduce(1..6, board, fn row, board ->
-      {:ok, board} = Board.set_wall(board, row, true)
-      board
-    end)
+
+    board =
+      Enum.reduce(1..6, board, fn row, board ->
+        {:ok, board} = Board.set_wall(board, row, true)
+        board
+      end)
+
     {:ok, board} = Board.set_wall(board, 4, false)
     assert Board.valid?(board) == true
   end
 
   test "valid?/1 returns false if walls are surrounding the goal" do
     pos = {3, 4}
+
     next_positions =
       1..4
       |> Stream.map(&Board.next(pos, &1))
       |> Enum.map(fn {:ok, pos} -> pos end)
 
     {:ok, board} = Board.place_goal(Board.new(), {3, 4})
-    board = Enum.reduce(next_positions, board, fn next_pos, board ->
-      {:ok, board} = Board.set_wall(board, pos, next_pos, true)
-      board
-    end)
+
+    board =
+      Enum.reduce(next_positions, board, fn next_pos, board ->
+        {:ok, board} = Board.set_wall(board, pos, next_pos, true)
+        board
+      end)
 
     assert Board.valid?(board) == false
   end
 
   test "valid?/1 returns false if there is a cell in the first column that has every wall around it except the left" do
     {:ok, board} = Board.place_goal(Board.new(), {3, 4})
-    board = Enum.reduce(1..6, board, fn row, board ->
-      {:ok, board} = Board.set_wall(board, row, true)
-      board
-    end)
+
+    board =
+      Enum.reduce(1..6, board, fn row, board ->
+        {:ok, board} = Board.set_wall(board, row, true)
+        board
+      end)
 
     pos = {4, 1}
+
     next_positions =
       1..3
       |> Stream.map(&Board.next(pos, &1))
       |> Enum.map(fn {:ok, pos} -> pos end)
 
-    board = Enum.reduce(next_positions, board, fn next_pos, board ->
-      {:ok, board} = Board.set_wall(board, pos, next_pos, true)
-      board
-    end)
+    board =
+      Enum.reduce(next_positions, board, fn next_pos, board ->
+        {:ok, board} = Board.set_wall(board, pos, next_pos, true)
+        board
+      end)
+
     {:ok, board} = Board.set_wall(board, 4, false)
 
     assert Board.valid?(board) == false

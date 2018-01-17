@@ -14,6 +14,7 @@ defmodule Pathfinder.GameTest do
       {:place_goal, [{3, 4}]},
       {:set_wall, [1, true]}
     ]
+
     {:ok, game} = Game.build(Game.new(0, 1), 1, changes)
 
     {:ok, board} = Board.place_goal(Board.new(), {3, 4})
@@ -39,6 +40,7 @@ defmodule Pathfinder.GameTest do
       {:set_wall, [{3, 5}, {3, 4}, true]},
       {:set_wall, [{4, 4}, {3, 4}, true]}
     ]
+
     assert Game.build(Game.new(0, 1), 1, changes) == :error
   end
 
@@ -53,10 +55,11 @@ defmodule Pathfinder.GameTest do
     {:ok, p2_board} = Board.place_goal(Board.new(), {2, 4})
 
     assert game.state == {:turn, 0} or game.state == {:turn, 1}
+
     assert game.players == %{
-      0 => %{Player.new() | board: p1_board},
-      1 => %{Player.new() | board: p2_board}
-    }
+             0 => %{Player.new() | board: p1_board},
+             1 => %{Player.new() | board: p2_board}
+           }
   end
 
   test "turn/3 should update the player's enemy board and the enemy's board" do
@@ -148,12 +151,12 @@ defmodule Pathfinder.GameTest do
     {:turn, player1, game} = Game.turn(game, player2, {:move_player, [2]})
 
     assert game.history == [
-      {player2, :move_player, [2]},
-      {player1, :move_player, [2]},
-      {player2, :place_player, [2]},
-      {player1, :place_player, [2]},
-      {1, :place_goal, [{3, 4}]},
-      {0, :place_goal, [{3, 4}]}
-    ]
+             {player2, :move_player, [2]},
+             {player1, :move_player, [2]},
+             {player2, :place_player, [2]},
+             {player1, :place_player, [2]},
+             {1, :place_goal, [{3, 4}]},
+             {0, :place_goal, [{3, 4}]}
+           ]
   end
 end

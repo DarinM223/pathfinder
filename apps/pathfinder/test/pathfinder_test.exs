@@ -8,8 +8,7 @@ defmodule PathfinderTest do
   end
 
   test "add/2 adds the child", context do
-    assert Pathfinder.add(context.test, 0, -1) ==
-      {:ok, {:game_registry, context.test}}
+    assert Pathfinder.add(context.test, 0, -1) == {:ok, {:game_registry, context.test}}
     assert is_map(Pathfinder.state({:game_registry, context.test}))
   end
 
@@ -28,6 +27,7 @@ defmodule PathfinderTest do
       Pathfinder.state(id)
       |> get_in([:players, 0, :board])
       |> Pathfinder.Board.goal_location()
+
     assert goal_location == {2, 2}
   end
 end

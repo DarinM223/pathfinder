@@ -3,13 +3,12 @@ defmodule PathfinderWeb.Data.Change do
   import Ecto.Changeset
   alias PathfinderWeb.Data.Change
 
-
   schema "changes" do
-    field :args, :map
-    field :name, :string
-    field :type, :string
-    field :user_id, :integer
-    belongs_to :game, PathfinderWeb.Data.Game
+    field(:args, :map)
+    field(:name, :string)
+    field(:type, :string)
+    field(:user_id, :integer)
+    belongs_to(:game, PathfinderWeb.Data.Game)
 
     timestamps()
   end

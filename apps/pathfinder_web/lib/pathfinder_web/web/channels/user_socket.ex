@@ -7,12 +7,15 @@ defmodule PathfinderWeb.Web.UserSocket do
 
   ## Channels
   # channel "room:*", PathfinderWeb.Web.RoomChannel
-  channel "games:*", PathfinderWeb.Web.GameChannel
+  channel("games:*", PathfinderWeb.Web.GameChannel)
 
   ## Transports
-  transport :websocket, Phoenix.Transports.WebSocket,
+  transport(
+    :websocket,
+    Phoenix.Transports.WebSocket,
     timeout: 45_000,
     check_origin: false
+  )
 
   # transport :longpoll, Phoenix.Transports.LongPoll
 
@@ -28,18 +31,22 @@ defmodule PathfinderWeb.Web.UserSocket do
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
   def connect(%{"token" => token}, socket) do
-    Logger.info("Verifying token: #{inspect token}")
+    Logger.info("Verifying token: #{inspect(token)}")
+
     case Phoenix.Token.verify(socket, "user socket", token, max_age: @max_age) do
       {:ok, user_id} ->
         {:ok, assign(socket, :user_id, user_id)}
+
       {:error, _reason} ->
         case Phoenix.Token.verify(socket, "non-logged-in-user socket", token, max_age: @max_age) do
           {:ok, _} ->
             {:ok, assign(socket, :user_id, -1)}
+
           {:error, _reason} ->
             case Phoenix.Token.verify(PathfinderWeb.Web.Endpoint, "bot", token, max_age: @max_age) do
               {:ok, _} ->
                 {:ok, assign(socket, :user_id, -2)}
+
               {:error, _reason} ->
                 :error
             end

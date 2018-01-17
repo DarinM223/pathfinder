@@ -34,6 +34,7 @@ defmodule Pathfinder.AITest do
     {ai, seen_board, board} =
       with {:ok, board} <- Kernel.apply(Board, fun, [board | fun_args]) do
         {:ok, seen_board} = Kernel.apply(Board, fun, [seen_board | fun_args])
+
         {
           Kernel.apply(AI, :move_success, Tuple.to_list(args)),
           seen_board,

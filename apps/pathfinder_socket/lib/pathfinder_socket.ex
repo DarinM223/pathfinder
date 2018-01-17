@@ -12,7 +12,7 @@ defmodule PathfinderSocket do
       worker(Pathfinder.Stash, [[name: PathfinderSocket.Stash]])
     ]
 
-    Supervisor.start_link(children, [strategy: :one_for_one, name: __MODULE__])
+    Supervisor.start_link(children, strategy: :one_for_one, name: __MODULE__)
   end
 
   def add(id, endpoint, stash \\ PathfinderSocket.Stash) do

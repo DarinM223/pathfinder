@@ -11,9 +11,14 @@ defmodule Pathfinder.Board.Walls do
   except for the left walls in the first column.
   """
   def set_all(row_size, column_size) do
-    cells = for row <- 1..column_size, col <- 1..row_size, do: {row, col}
+    cells =
+      for row <- 1..column_size,
+          col <- 1..row_size,
+          do: {row, col}
+
     Enum.reduce(cells, MapSet.new(), fn {row, col}, walls ->
       neighbors = Board.valid_neighbors({row, col}) |> Stream.map(&elem(&1, 1))
+
       Enum.reduce(neighbors, walls, fn pos, walls ->
         MapSet.put(walls, {{row, col}, pos})
       end)
@@ -29,6 +34,7 @@ defmodule Pathfinder.Board.Walls do
 
   defp _remove_random(walls, {row, col}, visited) do
     visited = Map.put(visited, Board.index(row, col), true)
+
     neighbors =
       Board.valid_neighbors({row, col})
       |> Stream.map(&elem(&1, 1))
@@ -40,6 +46,7 @@ defmodule Pathfinder.Board.Walls do
           walls
           |> MapSet.delete({{row, col}, cell})
           |> MapSet.delete({cell, {row, col}})
+
         _remove_random(walls, cell, visited)
       else
         {walls, visited}

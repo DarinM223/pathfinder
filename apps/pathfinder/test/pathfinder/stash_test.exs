@@ -3,7 +3,7 @@ defmodule Pathfinder.StashTest do
   alias Pathfinder.Stash
 
   setup context do
-    {:ok, stash} = Stash.start_link([name: :"#{context.test}_stash"])
+    {:ok, stash} = Stash.start_link(name: :"#{context.test}_stash")
     {:ok, stash: stash}
   end
 

@@ -12,11 +12,14 @@ defmodule PathfinderWeb.Web.Auth do
 
   def call(conn, repo) do
     user_id = get_session(conn, :user_id)
+
     cond do
       user = conn.assigns[:current_user] ->
         put_current_user(conn, user)
+
       user = user_id && Accounts.get_user(user_id, repo) ->
         put_current_user(conn, user)
+
       true ->
         assign(conn, :current_user, nil)
     end
@@ -35,8 +38,10 @@ defmodule PathfinderWeb.Web.Auth do
     cond do
       user && checkpw(password, user.password_hash) ->
         {:ok, login(conn, user)}
+
       user ->
         {:error, :unauthorized, conn}
+
       true ->
         dummy_checkpw()
         {:error, :not_found, conn}

@@ -25,13 +25,13 @@ defmodule PathfinderWeb.Web.ChannelCase do
     end
   end
 
-
   setup tags do
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(PathfinderWeb.Repo)
+
     unless tags[:async] do
       Ecto.Adapters.SQL.Sandbox.mode(PathfinderWeb.Repo, {:shared, self()})
     end
+
     :ok
   end
-
 end

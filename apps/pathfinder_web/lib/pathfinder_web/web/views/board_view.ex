@@ -3,9 +3,10 @@ defmodule PathfinderWeb.Web.BoardView do
 
   alias Pathfinder.Board
 
-  def render("board.json",  %{board: board}) do
+  def render("board.json", %{board: board}) do
     cells =
-      for row <- 1..6, col <- 1..6 do
+      for row <- 1..6,
+          col <- 1..6 do
         index = Board.index(row, col)
         cell = Map.get(board, index)
 
@@ -16,6 +17,7 @@ defmodule PathfinderWeb.Web.BoardView do
       with {:ok, {row, col}} <- Map.fetch(board, :player),
            do: [row - 1, col - 1],
            else: (_ -> nil)
+
     goal =
       with {:ok, {row, col}} <- Map.fetch(board, :goal),
            do: [row - 1, col - 1],

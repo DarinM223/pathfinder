@@ -9,11 +9,11 @@ defmodule Pathfinder.AI do
   @column_size Application.get_env(:pathfinder, :column_size)
 
   defstruct tried_entry_rows: MapSet.new(),
-    visited: MapSet.new(),
-    # Links are attempts to move from one cell to another
-    # and are represented by a tuple of two positions.
-    tried_links: MapSet.new(),
-    move_stack: []
+            visited: MapSet.new(),
+            # Links are attempts to move from one cell to another
+            # and are represented by a tuple of two positions.
+            tried_links: MapSet.new(),
+            move_stack: []
 
   @doc """
   Creates a new AI instance.
@@ -28,6 +28,7 @@ defmodule Pathfinder.AI do
   """
   def move(%AI{move_stack: [], tried_entry_rows: tried_rows} = ai, board) do
     random_row = Enum.random(1..@column_size)
+
     if MapSet.member?(tried_rows, random_row) do
       move(ai, board)
     else
@@ -35,6 +36,7 @@ defmodule Pathfinder.AI do
       {ai, true, {:place_player, [random_row]}}
     end
   end
+
   def move(%AI{move_stack: [top | rest], visited: visited, tried_links: tried_links} = ai, board) do
     unvisited_neighbors =
       neighbors(top, board)
@@ -43,10 +45,12 @@ defmodule Pathfinder.AI do
 
     if length(unvisited_neighbors) > 0 do
       unvisited = List.first(unvisited_neighbors)
+
       tried_links =
         tried_links
         |> MapSet.put({top, unvisited})
         |> MapSet.put({unvisited, top})
+
       ai = %{ai | tried_links: tried_links}
 
       {:ok, direction} = Board.direction_between_points(top, unvisited)
@@ -64,16 +68,26 @@ defmodule Pathfinder.AI do
   @doc """
   Callback called when a move successfully completed.
   """
-  def move_success(%AI{visited: visited, move_stack: move_stack} = ai, true, {:place_player, [row]}) do
+  def move_success(
+        %AI{visited: visited, move_stack: move_stack} = ai,
+        true,
+        {:place_player, [row]}
+      ) do
     pos = {row, 1}
     visited = MapSet.put(visited, pos)
     %{ai | visited: visited, move_stack: [pos | move_stack]}
   end
-  def move_success(%AI{visited: visited, move_stack: move_stack} = ai, true, {:move_player, [dir, pos]}) do
+
+  def move_success(
+        %AI{visited: visited, move_stack: move_stack} = ai,
+        true,
+        {:move_player, [dir, pos]}
+      ) do
     {:ok, next_pos} = Board.next(pos, dir)
     visited = MapSet.put(visited, next_pos)
     %{ai | visited: visited, move_stack: [next_pos | move_stack]}
   end
+
   def move_success(%AI{move_stack: [_ | rest]} = ai, false, _) do
     %{ai | move_stack: rest}
   end

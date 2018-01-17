@@ -12,45 +12,53 @@ defmodule PathfinderWeb.Data do
   def list_user_created_games(%User{} = user, show_completed_games \\ false) do
     query =
       if show_completed_games do
-        from g in Ecto.assoc(user, :games), where: not is_nil(g.winner)
+        from(g in Ecto.assoc(user, :games), where: not is_nil(g.winner))
       else
-        from g in Ecto.assoc(user, :games), where: is_nil(g.winner)
+        from(g in Ecto.assoc(user, :games), where: is_nil(g.winner))
       end
 
     query =
-      from g in query,
+      from(
+        g in query,
         order_by: [desc: g.inserted_at],
         limit: @list_users_limit
+      )
 
     Repo.all(query)
   end
 
   def list_user_participating_games(%User{} = user) do
     Repo.all(
-      from g in Game,
+      from(
+        g in Game,
         where: g.other_user_id == ^user.id and is_nil(g.winner),
         order_by: [desc: g.inserted_at],
         limit: @list_users_limit,
         preload: [:user]
+      )
     )
   end
 
   def list_recent_other_usernames(%User{} = user) do
     other_user_games =
-      from g in Ecto.assoc(user, :games),
+      from(
+        g in Ecto.assoc(user, :games),
         distinct: g.other_user_name,
         order_by: [desc: g.inserted_at]
+      )
 
     Repo.all(
-      from g in subquery(other_user_games),
+      from(
+        g in subquery(other_user_games),
         select: g.other_user_name,
         order_by: [desc: g.inserted_at],
         limit: @other_users_limit
+      )
     )
   end
 
   def list_changes(%Game{} = game) do
-    Repo.all(from c in Ecto.assoc(game, :changes), order_by: c.id)
+    Repo.all(from(c in Ecto.assoc(game, :changes), order_by: c.id))
   end
 
   def get_shared_game!(shareid) do

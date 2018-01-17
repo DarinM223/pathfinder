@@ -21,10 +21,14 @@ defmodule Pathfinder.Board do
   @row_size Application.get_env(:pathfinder, :row_size)
   @column_size Application.get_env(:pathfinder, :column_size)
   @directions [
-    1, # Top
-    2, # Right
-    3, # Bottom
-    4  # Left
+    # Top
+    1,
+    # Right
+    2,
+    # Bottom
+    3,
+    # Left
+    4
   ]
 
   @doc """
@@ -36,9 +40,11 @@ defmodule Pathfinder.Board do
 
   """
   def new do
-    (for row <- 1..@column_size,
-         col <- 1..@row_size,
-         do: {row, col})
+    for(
+      row <- 1..@column_size,
+      col <- 1..@row_size,
+      do: {row, col}
+    )
     |> Stream.map(&initial_cell/1)
     |> init_board()
   end
@@ -56,8 +62,8 @@ defmodule Pathfinder.Board do
     cells
     |> Stream.with_index(0)
     |> Enum.reduce(%{}, fn {cell, index}, acc ->
-         Map.put(acc, index, cell)
-       end)
+      Map.put(acc, index, cell)
+    end)
     |> Map.put(:player, nil)
     |> Map.put(:goal, nil)
   end
@@ -70,6 +76,7 @@ defmodule Pathfinder.Board do
   """
   def generate_changes do
     entry_row = Enum.random(1..@column_size)
+
     Walls.set_all(@row_size, @column_size)
     |> Walls.remove_random({entry_row, 1})
     |> Walls.add_random_row_walls(@column_size, entry_row)
@@ -84,6 +91,7 @@ defmodule Pathfinder.Board do
       Enum.reduce(changes, %{}, fn
         {:set_wall, [pos, _, true]}, map ->
           Map.update(map, pos, initial_walls(pos) + 1, &(&1 + 1))
+
         {:set_wall, [row, true]}, map ->
           pos = {row, 1}
           Map.update(map, pos, initial_walls(pos) + 1, &(&1 + 1))
@@ -147,7 +155,10 @@ defmodule Pathfinder.Board do
   def valid_neighbors(cell) do
     @directions
     |> Stream.map(&{&1, next(cell, &1)})
-    |> Stream.filter(fn {_, {:ok, _}} -> true; _ -> false end)
+    |> Stream.filter(fn
+      {_, {:ok, _}} -> true
+      _ -> false
+    end)
     |> Stream.map(fn {dir, {:ok, pos}} -> {dir, pos} end)
   end
 
@@ -184,10 +195,12 @@ defmodule Pathfinder.Board do
       ["+   ", top_row(tail)]
     end
   end
+
   defp top_row(_), do: "+\n"
 
   defp middle_row([{data, _, _, _, left} | tail]) do
     left_wall = if left, do: "|", else: " "
+
     data =
       case data do
         :player -> " P "
@@ -198,6 +211,7 @@ defmodule Pathfinder.Board do
 
     [left_wall, data, middle_row(tail)]
   end
+
   defp middle_row(_), do: "|\n"
 
   defp bottom_row([{_, _, _, bottom, _} | tail]) do
@@ -207,13 +221,14 @@ defmodule Pathfinder.Board do
       ["+   ", bottom_row(tail)]
     end
   end
+
   defp bottom_row(_), do: "+\n"
 
   # Validates that the row and column are inside the bounds of the grid.
   defmacro validate_position(row, col) do
     quote do
-      unquote(row) > 0 and unquote(row) <= @column_size and
-      unquote(col) > 0 and unquote(col) <= @row_size
+      unquote(row) > 0 and unquote(row) <= @column_size and unquote(col) > 0 and
+        unquote(col) <= @row_size
     end
   end
 
@@ -240,6 +255,7 @@ defmodule Pathfinder.Board do
   def index(cell_row, cell_col) when validate_position(cell_row, cell_col) do
     (cell_row - 1) * @row_size + (cell_col - 1)
   end
+
   def index(_, _), do: -1
   def index({cell_row, cell_col}), do: index(cell_row, cell_col)
 
@@ -248,11 +264,13 @@ defmodule Pathfinder.Board do
   """
   def set_wall(board, row, value) do
     i = index(row, 1)
+
     with {:ok, cell} <- Map.fetch(board, i) do
       cell = Kernel.put_elem(cell, 4, value)
       {:ok, Map.put(board, i, cell)}
     end
   end
+
   def set_wall(board, pos1, pos2, value) do
     index1 = index(pos1)
     index2 = index(pos2)
@@ -262,10 +280,12 @@ defmodule Pathfinder.Board do
          {:ok, cell2} <- Map.fetch(board, index2) do
       cell1 = Kernel.put_elem(cell1, direction, value)
       cell2 = Kernel.put_elem(cell2, reverse(direction), value)
+
       board =
         board
         |> Map.put(index1, cell1)
         |> Map.put(index2, cell2)
+
       {:ok, board}
     else
       _ -> :error
@@ -323,7 +343,7 @@ defmodule Pathfinder.Board do
       2 -> 4
       3 -> 1
       4 -> 2
-      _ -> raise "Invalid direction: #{inspect direction}"
+      _ -> raise "Invalid direction: #{inspect(direction)}"
     end
   end
 
@@ -349,7 +369,7 @@ defmodule Pathfinder.Board do
         2 -> {row, col + 1}
         3 -> {row + 1, col}
         4 -> {row, col - 1}
-        _ -> raise "Invalid direction: #{inspect direction}"
+        _ -> raise "Invalid direction: #{inspect(direction)}"
       end
 
     if validate_position(row, col) do
@@ -364,6 +384,7 @@ defmodule Pathfinder.Board do
   """
   def place_player(board, row) do
     i = index(row, 1)
+
     with {:ok, {_, _, _, _, left} = cell} <- Map.fetch(board, i) do
       if left do
         {:error, :wall}
@@ -372,6 +393,7 @@ defmodule Pathfinder.Board do
           board
           |> Map.put(i, Kernel.put_elem(cell, 0, :player))
           |> Map.put(:player, {row, 1})
+
         {:ok, board}
       end
     end
@@ -390,11 +412,13 @@ defmodule Pathfinder.Board do
         board
         |> Map.put(pos_index, Kernel.put_elem(cell, 0, :marker))
         |> Map.put(:player, nil)
+
       {:ok, board}
     else
       _ -> :error
     end
   end
+
   def remove_player(board, _), do: remove_player(board)
 
   @doc """
@@ -402,11 +426,13 @@ defmodule Pathfinder.Board do
   """
   def place_goal(board, position) do
     i = index(position)
+
     with {:ok, cell} <- Map.fetch(board, i) do
       board =
         board
         |> Map.put(i, Kernel.put_elem(cell, 0, :goal))
         |> Map.put(:goal, position)
+
       {:ok, board}
     end
   end
@@ -429,6 +455,7 @@ defmodule Pathfinder.Board do
   """
   def can_move(board, pos, direction) do
     pos_index = index(pos)
+
     case Map.fetch(board, pos_index) do
       {:ok, cell} when not elem(cell, direction) -> true
       _ -> false
@@ -444,16 +471,19 @@ defmodule Pathfinder.Board do
          {:ok, next_pos} <- next({row, col}, direction),
          {:ok, cell} when not elem(cell, direction) <- Map.fetch(board, pos_index) do
       next_pos_index = index(next_pos)
+
       board =
         board
         |> Map.put(pos_index, Kernel.put_elem(cell, 0, :marker))
         |> Map.update!(next_pos_index, &Kernel.put_elem(&1, 0, :player))
         |> Map.put(:player, next_pos)
+
       {:ok, board}
     else
       _ -> :error
     end
   end
+
   def move_player(board, direction, _), do: move_player(board, direction)
 
   @doc """
@@ -506,18 +536,21 @@ defmodule Pathfinder.Board do
 
   defp validate_goal(board, queue, discovered) do
     {value, queue} = :queue.out(queue)
+
     case value do
       :empty ->
         false
+
       {:value, {_, col} = pos} ->
         case Map.get(board, index(pos)) do
           {_, _, _, _, left} when col == 1 and not left ->
             true
+
           nil ->
             false
+
           cell ->
-            {queue, discovered} =
-              add_next_positions(pos, cell, queue, discovered)
+            {queue, discovered} = add_next_positions(pos, cell, queue, discovered)
 
             validate_goal(board, queue, discovered)
         end

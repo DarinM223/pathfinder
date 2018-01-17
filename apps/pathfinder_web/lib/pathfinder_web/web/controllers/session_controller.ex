@@ -5,7 +5,7 @@ defmodule PathfinderWeb.Web.SessionController do
   alias PathfinderWeb.Web.Auth
 
   def new(conn, _) do
-    render conn, "new.html"
+    render(conn, "new.html")
   end
 
   def create(conn, %{"session" => %{"username" => username, "password" => password}}) do
@@ -14,6 +14,7 @@ defmodule PathfinderWeb.Web.SessionController do
         conn
         |> put_flash(:info, "Successfully logged in")
         |> redirect(to: page_path(conn, :index))
+
       {:error, _reason, conn} ->
         conn
         |> put_flash(:error, "Invalid username/password")

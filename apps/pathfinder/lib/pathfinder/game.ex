@@ -35,9 +35,11 @@ defmodule Pathfinder.Game do
   Returns the console printable version of the game as an IO list.
   """
   def to_io_list(game) do
-    players = Enum.map(game.players, fn {id, player} ->
-      ["Player ", inspect(id), ":\n", Player.to_io_list(player)]
-    end)
+    players =
+      Enum.map(game.players, fn {id, player} ->
+        ["Player ", inspect(id), ":\n", Player.to_io_list(player)]
+      end)
+
     ["Current state: ", inspect(game.state), "\n", players]
   end
 
@@ -59,6 +61,7 @@ defmodule Pathfinder.Game do
       {:ok, %{game | state: {:build, player}}}
     end
   end
+
   def build(%{state: {:build, i}} = game, player, changes) when i != player do
     next_player =
       game.players
@@ -76,6 +79,7 @@ defmodule Pathfinder.Game do
     acc_changes = fn
       {fun, args}, {:ok, board} ->
         Kernel.apply(Board, fun, [board | args])
+
       _, error ->
         error
     end
@@ -88,11 +92,14 @@ defmodule Pathfinder.Game do
     with {:ok, board} <- result,
          true <- Board.valid?(board) do
       game = update_in(game.players[player].board, fn _ -> board end)
-      game = update_in(game.history, fn history ->
-        changes
-        |> Stream.map(fn {name, args} -> {player, name, args} end)
-        |> Enum.concat(history)
-      end)
+
+      game =
+        update_in(game.history, fn history ->
+          changes
+          |> Stream.map(fn {name, args} -> {player, name, args} end)
+          |> Enum.concat(history)
+        end)
+
       {:ok, game}
     else
       _ -> :error
@@ -109,12 +116,12 @@ defmodule Pathfinder.Game do
   """
   def turn(%{state: {:turn, i}} = game, player, {fun, args})
       when i == player and fun in @allowed_turn_actions do
-
     [enemy] =
       game.players
       |> Stream.filter(&(elem(&1, 0) != player))
-      |> Stream.map(&(elem(&1, 0)))
+      |> Stream.map(&elem(&1, 0))
       |> Enum.take(1)
+
     game = %{game | state: {:turn, enemy}, history: [{player, fun, args} | game.history]}
     enemy_board = get_in(game, [:players, enemy, :board])
     player_enemy_board = get_in(game, [:players, player, :enemy_board])
@@ -139,24 +146,29 @@ defmodule Pathfinder.Game do
 
   defp handle_turn_error(:place_player, args, game, player) do
     [row | _] = args
+
     update_in(game.players[player].enemy_board, fn board ->
       {:ok, board} = Board.set_wall(board, row, true)
       board
     end)
   end
+
   defp handle_turn_error(:remove_player, _, game, player) do
     board = get_in(game, [:players, player, :enemy_board])
     {row, _} = Board.player_location(board)
+
     update_in(game.players[player].enemy_board, fn board ->
       {:ok, board} = Board.set_wall(board, row, true)
       board
     end)
   end
+
   defp handle_turn_error(:move_player, args, game, player) do
     [direction | _] = args
     board = get_in(game, [:players, player, :enemy_board])
     pos1 = Board.player_location(board)
     {:ok, pos2} = Board.next(pos1, direction)
+
     update_in(game.players[player].enemy_board, fn board ->
       {:ok, board} = Board.set_wall(board, pos1, pos2, true)
       board

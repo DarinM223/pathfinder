@@ -13,7 +13,9 @@ config :pathfinder_web, PathfinderWeb.Web.Endpoint,
   check_origin: false,
   watchers: [
     node: [
-      "node_modules/brunch/bin/brunch", "watch", "--stdin",
+      "node_modules/brunch/bin/brunch",
+      "watch",
+      "--stdin",
       cd: Path.expand("../assets", __DIR__)
     ]
   ]

@@ -6,14 +6,18 @@ defmodule PathfinderWeb.Web.PlayerView do
 
     %{
       id: id,
-      board: render_one(
-        player.board,
-        PathfinderWeb.Web.BoardView, "board.json"
-      ),
-      enemy_board: render_one(
-        player.enemy_board,
-        PathfinderWeb.Web.BoardView, "board.json"
-      ),
+      board:
+        render_one(
+          player.board,
+          PathfinderWeb.Web.BoardView,
+          "board.json"
+        ),
+      enemy_board:
+        render_one(
+          player.enemy_board,
+          PathfinderWeb.Web.BoardView,
+          "board.json"
+        ),
       state: state
     }
   end
