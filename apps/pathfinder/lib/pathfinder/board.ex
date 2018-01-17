@@ -17,6 +17,7 @@ defmodule Pathfinder.Board do
 
   alias Pathfinder.Board
   alias Pathfinder.Board.Walls
+  import Pathfinder.Board.Guards
 
   @row_size Application.get_env(:pathfinder, :row_size)
   @column_size Application.get_env(:pathfinder, :column_size)
@@ -224,14 +225,6 @@ defmodule Pathfinder.Board do
 
   defp bottom_row(_), do: "+\n"
 
-  # Validates that the row and column are inside the bounds of the grid.
-  defmacro validate_position(row, col) do
-    quote do
-      unquote(row) > 0 and unquote(row) <= @column_size and unquote(col) > 0 and
-        unquote(col) <= @row_size
-    end
-  end
-
   @doc """
   Returns the index of the row and column position in the board
   or -1 if the row or column is invalid.
@@ -405,9 +398,9 @@ defmodule Pathfinder.Board do
   (a row on the first column) that does not have a left wall.
   """
   def remove_player(board) do
-    with {row, col} when col == 1 <- Map.get(board, :player),
+    with {row, col} when is_left_col(col) <- Map.get(board, :player),
          pos_index <- index(row, col),
-         {:ok, cell} when not elem(cell, 4) <- Map.fetch(board, pos_index) do
+         {:ok, cell} when no_wall(cell, 4) <- Map.fetch(board, pos_index) do
       board =
         board
         |> Map.put(pos_index, Kernel.put_elem(cell, 0, :marker))
@@ -457,7 +450,7 @@ defmodule Pathfinder.Board do
     pos_index = index(pos)
 
     case Map.fetch(board, pos_index) do
-      {:ok, cell} when not elem(cell, direction) -> true
+      {:ok, cell} when no_wall(cell, direction) -> true
       _ -> false
     end
   end
@@ -469,7 +462,7 @@ defmodule Pathfinder.Board do
     with {row, col} <- Map.get(board, :player),
          pos_index <- index(row, col),
          {:ok, next_pos} <- next({row, col}, direction),
-         {:ok, cell} when not elem(cell, direction) <- Map.fetch(board, pos_index) do
+         {:ok, cell} when no_wall(cell, direction) <- Map.fetch(board, pos_index) do
       next_pos_index = index(next_pos)
 
       board =
@@ -543,7 +536,7 @@ defmodule Pathfinder.Board do
 
       {:value, {_, col} = pos} ->
         case Map.get(board, index(pos)) do
-          {_, _, _, _, left} when col == 1 and not left ->
+          {_, _, _, _, left} when is_left_col(col) and not left ->
             true
 
           nil ->

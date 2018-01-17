@@ -119,22 +119,24 @@ defmodule PathfinderSocket.Client do
     {:ok, state}
   end
 
+  defguardp is_reply(ref, curr_ref, game_id, id) when ref == curr_ref and game_id == id
+
   def handle_reply(
         "games:" <> id,
         ref,
         %{"status" => "ok"},
         _t,
-        %{curr_ref: curr_ref, game_id: game_id} = state
+        %{curr_ref: cref, game_id: game_id} = state
       )
-      when ref == curr_ref and game_id == id do
+      when is_reply(ref, cref, game_id, id) do
     {_, _, {fun, fun_args}} = state.curr_args
     ai = Kernel.apply(AI, :move_success, Tuple.to_list(state.curr_args))
     {:ok, board} = Kernel.apply(Board, fun, [state.board | fun_args])
     {:ok, %{state | ai: ai, board: board, curr_ref: nil, curr_args: nil}}
   end
 
-  def handle_reply("games:" <> id, ref, _p, _t, %{curr_ref: curr_ref, game_id: game_id} = state)
-      when ref == curr_ref and game_id == id do
+  def handle_reply("games:" <> id, ref, _p, _t, %{curr_ref: cref, game_id: game_id} = state)
+      when is_reply(ref, cref, game_id, id) do
     {:ok, %{state | curr_ref: nil, curr_args: nil}}
   end
 

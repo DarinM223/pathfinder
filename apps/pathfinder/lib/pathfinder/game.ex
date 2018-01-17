@@ -106,6 +106,9 @@ defmodule Pathfinder.Game do
     end
   end
 
+  defguardp valid_turn(turn_player, player, fun)
+            when turn_player == player and fun in @allowed_turn_actions
+
   @doc """
   Handles a player's action for a turn.
 
@@ -114,8 +117,7 @@ defmodule Pathfinder.Game do
   {:turn, player, game} for the next player's turn
   {:error, player, game} if there was a problem completing the action
   """
-  def turn(%{state: {:turn, i}} = game, player, {fun, args})
-      when i == player and fun in @allowed_turn_actions do
+  def turn(%{state: {:turn, i}} = game, player, {fun, args}) when valid_turn(i, player, fun) do
     [enemy] =
       game.players
       |> Stream.filter(&(elem(&1, 0) != player))
