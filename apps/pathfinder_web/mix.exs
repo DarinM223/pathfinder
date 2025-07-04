@@ -53,7 +53,7 @@ defmodule PathfinderWeb.Mixfile do
       {:gettext, "~> 0.11"},
       {:plug_cowboy, "~> 2.1"},
       {:comeonin, "~> 3.2"},
-      {:poison, "~> 3.1"},
+      {:jason, "~> 1.0"},
       {:pathfinder, in_umbrella: true},
       {:pathfinder_socket, in_umbrella: true}
     ]
