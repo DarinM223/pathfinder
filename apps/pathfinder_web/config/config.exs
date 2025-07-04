@@ -15,7 +15,7 @@ config :pathfinder_web, PathfinderWeb.Web.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "LVsqR4fDZJxgD7NCOIw6EXGRgNSVJgJYX7q2dDyQnZM63ZokbXEJprOH5Wbt0mo9",
   render_errors: [view: PathfinderWeb.Web.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: PathfinderWeb.PubSub, adapter: Phoenix.PubSub.PG2]
+  pubsub_server: PathfinderWeb.PubSub
 
 # Configures Elixir's Logger
 config :logger, :console,

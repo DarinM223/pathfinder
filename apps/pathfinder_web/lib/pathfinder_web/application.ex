@@ -8,6 +8,7 @@ defmodule PathfinderWeb.Application do
 
     # Define workers and child supervisors to be supervised
     children = [
+      {Phoenix.PubSub, name: PathfinderWeb.PubSub},
       # Start the Ecto repository
       supervisor(PathfinderWeb.Repo, []),
       # Start the endpoint when the application starts

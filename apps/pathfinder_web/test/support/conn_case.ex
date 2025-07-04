@@ -18,6 +18,7 @@ defmodule PathfinderWeb.Web.ConnCase do
   using do
     quote do
       # Import conveniences for testing with connections
+      import Plug.Conn
       use Phoenix.ConnTest
       import PathfinderWeb.Web.Router.Helpers
       import PathfinderWeb.TestHelpers
