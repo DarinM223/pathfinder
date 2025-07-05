@@ -1,7 +1,7 @@
 defmodule Pathfinder.Supervisor do
   use Supervisor
 
-  @registry Application.get_env(:pathfinder, :registry)
+  @registry Application.compile_env(:pathfinder, :registry)
 
   def start_link(opts \\ [name: Pathfinder.Supervisor]) do
     Supervisor.start_link(__MODULE__, :ok, opts)

@@ -1,7 +1,7 @@
 defmodule PathfinderSocket do
   use Application
 
-  @registry Application.get_env(:pathfinder_socket, :registry)
+  @registry Application.compile_env(:pathfinder_socket, :registry)
 
   def start(_type, _args) do
     import Supervisor.Spec, warn: false

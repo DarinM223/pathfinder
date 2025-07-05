@@ -29,7 +29,7 @@ defmodule PathfinderSocket.Mixfile do
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"},
       # {:sibling_app_in_umbrella, in_umbrella: true},
-      {:phoenix, "~> 1.5.0"},
+      {:phoenix, "~> 1.6.0"},
       {:gettext, "~> 0.9"},
       {:plug_cowboy, "~> 2.1"},
       {:phoenix_gen_socket_client, "~> 2.0.0"},

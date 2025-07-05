@@ -5,7 +5,7 @@ defmodule Pathfinder do
 
   use Application
 
-  @registry Application.get_env(:pathfinder, :registry)
+  @registry Application.compile_env(:pathfinder, :registry)
   @max_timeout 1_000
   @retry_time 200
 

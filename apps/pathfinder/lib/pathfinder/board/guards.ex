@@ -1,6 +1,6 @@
 defmodule Pathfinder.Board.Guards do
-  @row_size Application.get_env(:pathfinder, :row_size)
-  @column_size Application.get_env(:pathfinder, :column_size)
+  @row_size Application.compile_env(:pathfinder, :row_size)
+  @column_size Application.compile_env(:pathfinder, :column_size)
 
   defguard is_left_col(col) when col == 1
   defguard is_wall(cell, dir) when elem(cell, dir)

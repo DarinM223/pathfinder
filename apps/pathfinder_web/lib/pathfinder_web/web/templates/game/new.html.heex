@@ -16,7 +16,7 @@
       <%= text_input f, :other_user_name, placeholder: "Other player's username", class: "form-control", list: "names" %>
       <datalist id="names">
         <%= for name <- @recent_other_usernames do %>
-          <option value="<%= name %>">
+          <option value={name}">
         <% end %>
       </datalist>
       <%= error_tag f, :other_user_name %>
