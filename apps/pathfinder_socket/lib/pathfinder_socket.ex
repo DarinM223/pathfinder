@@ -8,7 +8,7 @@ defmodule PathfinderSocket do
 
     children = [
       supervisor(PathfinderSocket.Supervisor, []),
-      supervisor(Registry, [:unique, @registry]),
+      {Registry, [keys: :unique, name: @registry]},
       worker(Pathfinder.Stash, [[name: PathfinderSocket.Stash]])
     ]
 

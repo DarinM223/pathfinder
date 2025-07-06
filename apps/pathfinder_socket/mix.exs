@@ -32,7 +32,7 @@ defmodule PathfinderSocket.Mixfile do
       {:phoenix, "~> 1.6.0"},
       {:gettext, "~> 0.9"},
       {:plug_cowboy, "~> 2.1"},
-      {:phoenix_gen_socket_client, "~> 2.0.0"},
+      {:phoenix_gen_socket_client, "~> 4.0.0"},
       {:websocket_client, "~> 1.2"},
       {:pathfinder, in_umbrella: true}
     ]

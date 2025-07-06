@@ -14,8 +14,8 @@ defmodule Pathfinder do
 
     children = [
       supervisor(Pathfinder.Supervisor, []),
-      supervisor(Registry, [:unique, @registry]),
-      worker(Pathfinder.Stash, [])
+      {Registry, [keys: :unique, name: @registry]},
+      {Pathfinder.Stash, name: Pathfinder.Stash}
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one, name: __MODULE__)

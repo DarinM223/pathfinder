@@ -15,9 +15,9 @@ defmodule Pathfinder.Supervisor do
 
   def init(:ok) do
     children = [
-      worker(Pathfinder.Worker, [])
+      Pathfinder.Worker
     ]
 
-    supervise(children, strategy: :simple_one_for_one, max_restarts: 100)
+    Supervisor.init(children, strategy: :simple_one_for_one, max_restarts: 100)
   end
 end

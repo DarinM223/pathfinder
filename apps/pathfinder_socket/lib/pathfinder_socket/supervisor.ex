@@ -1,7 +1,7 @@
 defmodule PathfinderSocket.Supervisor do
   use Supervisor
 
-  @registry Application.get_env(:pathfinder_socket, :registry)
+  @registry Application.compile_env(:pathfinder_socket, :registry)
 
   def start_link(opts \\ [name: PathfinderSocket.Supervisor]) do
     Supervisor.start_link(__MODULE__, :ok, opts)
@@ -15,9 +15,9 @@ defmodule PathfinderSocket.Supervisor do
 
   def init(:ok) do
     children = [
-      worker(PathfinderSocket.Client, [])
+      PathfinderSocket.Client
     ]
 
-    supervise(children, strategy: :simple_one_for_one, restart: :temporary)
+    Supervisor.init(children, strategy: :simple_one_for_one, restart: :temporary)
   end
 end
