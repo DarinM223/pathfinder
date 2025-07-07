@@ -181,7 +181,7 @@ defmodule PathfinderSocket.Client do
     {:reply, state, state}
   end
 
-  def terminate(_reason, %{stash: stash, game_id: id} = state) do
+  def terminate(_reason, %{callback_state: %{stash: stash, game_id: id} = state}) do
     Stash.set(stash, id, state)
   end
 

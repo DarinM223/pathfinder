@@ -61,4 +61,5 @@ config :pathfinder_web, PathfinderWeb.Repo,
   password: "postgres",
   database: "pathfinder_web_dev",
   hostname: "localhost",
-  pool_size: 10
+  pool_size: 10,
+  migration_timestamps: [type: :timestamptz]

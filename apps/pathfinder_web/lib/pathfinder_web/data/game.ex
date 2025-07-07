@@ -15,7 +15,7 @@ defmodule PathfinderWeb.Data.Game do
     field(:other_user_name, :string)
     field(:other_user_type, :string, virtual: true)
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   @doc false

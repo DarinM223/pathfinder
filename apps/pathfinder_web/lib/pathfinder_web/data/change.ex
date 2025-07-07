@@ -10,7 +10,7 @@ defmodule PathfinderWeb.Data.Change do
     field(:user_id, :integer)
     belongs_to(:game, PathfinderWeb.Data.Game)
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   @doc false
