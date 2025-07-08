@@ -13,7 +13,12 @@ defmodule Pathfinder do
     import Supervisor.Spec, warn: false
 
     children = [
-      supervisor(Pathfinder.Supervisor, []),
+      %{
+        id: Pathfinder.Supervisor,
+        start: {Pathfinder.Supervisor, :start_link, []},
+        shutdown: :infinity,
+        type: :supervisor
+      },
       {Registry, [keys: :unique, name: @registry]},
       {Pathfinder.Stash, name: Pathfinder.Stash}
     ]

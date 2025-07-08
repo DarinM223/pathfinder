@@ -7,9 +7,14 @@ defmodule PathfinderSocket do
     import Supervisor.Spec, warn: false
 
     children = [
-      supervisor(PathfinderSocket.Supervisor, []),
+      %{
+        id: PathfinderSocket.Supervisor,
+        start: {PathfinderSocket.Supervisor, :start_link, []},
+        shutdown: :infinity,
+        type: :supervisor
+      },
       {Registry, [keys: :unique, name: @registry]},
-      worker(Pathfinder.Stash, [[name: PathfinderSocket.Stash]])
+      {Pathfinder.Stash, [name: PathfinderSocket.Stash]}
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one, name: __MODULE__)
