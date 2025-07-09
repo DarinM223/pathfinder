@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { action, observable } from 'mobx';
 import { observer } from 'mobx-react';
-import { BoardView } from './board/view.js';
+import { BoardView } from './board/view.jsx';
 import {
   Board,
   LEFT,

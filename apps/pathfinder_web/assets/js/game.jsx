@@ -13,8 +13,8 @@ import {
   next,
   storageId
 } from './board/data.js';
-import { BoardView } from './board/view.js';
-import { GameTextView } from './text.js';
+import { BoardView } from './board/view.jsx';
+import { GameTextView } from './text.jsx';
 import {
   switchButton,
   boardStatus,
@@ -23,7 +23,7 @@ import {
   clearButton,
   buildModal,
   clearModal
-} from './controls.js';
+} from './controls.jsx';
 
 export class Game {
   @observable playerBoard;

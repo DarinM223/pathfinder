@@ -26,8 +26,8 @@ global.bootstrap = require('bootstrap');
 import React, { Component, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
 import { observer } from 'mobx-react';
-import { Game, GameView } from './game.js';
-import { Replay, ReplayView } from './replay.js';
+import { Game, GameView } from './game.jsx';
+import { Replay, ReplayView } from './replay.jsx';
 import socket from './socket.js';
 
 const element = document.getElementById('game');

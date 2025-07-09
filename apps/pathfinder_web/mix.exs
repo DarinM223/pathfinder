@@ -58,6 +58,7 @@ defmodule PathfinderWeb.Mixfile do
       {:plug_cowboy, "~> 2.1"},
       {:comeonin, "~> 3.2"},
       {:jason, "~> 1.0"},
+      {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
       {:pathfinder, in_umbrella: true},
       {:pathfinder_socket, in_umbrella: true}
     ]
@@ -73,6 +74,7 @@ defmodule PathfinderWeb.Mixfile do
     [
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
+      "assets.deploy": ["esbuild default --minify", "phx.digest"],
       test: ["ecto.create --quiet", "ecto.migrate", "test"]
     ]
   end
