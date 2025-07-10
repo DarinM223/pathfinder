@@ -3,18 +3,12 @@ import { action, observable } from 'mobx';
 import { observer } from 'mobx-react';
 import {
   Board,
-  LEFT,
-  PLACE_WALL,
-  PLACE_GOAL,
-  MOVE_PLAYER,
-  PLACE_PLAYER,
-  NO_STATE,
-  WON_STATE,
+  Direction,
   next,
   storageId
-} from './board/data.js';
-import { BoardView } from './board/view.jsx';
-import { GameTextView } from './text.jsx';
+} from './board/data.ts';
+import { BoardView } from './board/view.tsx';
+import { GameTextView } from './text.tsx';
 import {
   switchButton,
   boardStatus,
@@ -23,13 +17,21 @@ import {
   clearButton,
   buildModal,
   clearModal
-} from './controls.jsx';
+} from './controls.tsx';
 
 export class Game {
-  @observable playerBoard;
-  @observable enemyBoard;
-  @observable error = null;
-  @observable won = null;
+  @observable playerBoard: Board;
+  @observable enemyBoard: Board;
+  @observable error: string | null = null;
+  @observable won: boolean | null = null;
+
+  gameId: string
+  playerId: string
+  shareId: string
+  replayLink: string
+
+  socket: any
+  gamesChannel: any
 
   constructor(socket, element) {
     this.socket = socket;
@@ -75,7 +77,7 @@ export class Game {
     this.gamesChannel.join()
       .receive('ok', (player) => {
         if (player !== null) {
-          const board = JSON.parse(localStorage.getItem(storageId(this.gameId)));
+          const board = JSON.parse(localStorage.getItem(storageId(this.gameId))!);
           if (player.state[0] === 'build' && typeof board !== 'undefined' && board !== null) {
             this.playerBoard.loadFromJSON(board);
           } else {
@@ -85,7 +87,7 @@ export class Game {
 
           this.onNextState(player.state);
         } else {
-          this.playerBoard.transition(PLACE_WALL);
+          this.playerBoard.transition('PLACE_WALL');
         }
       })
       .receive('error', (reason) => console.log('join failed', reason));
@@ -101,29 +103,29 @@ export class Game {
   @action onNextState(state) {
     if (state[0] === 'build') {
       if (state[1] === null || state[1] != this.playerId) {
-        this.playerBoard.transition(PLACE_WALL);
+        this.playerBoard.transition('PLACE_WALL');
       } else {
-        this.playerBoard.transition(NO_STATE);
+        this.playerBoard.transition('NO_STATE');
       }
     } else if (state[0] === 'win') {
       if (state[1] == this.playerId) {
         this.won = true;
-        this.enemyBoard.transition(WON_STATE);
-        this.playerBoard.transition(NO_STATE);
+        this.enemyBoard.transition('WON_STATE');
+        this.playerBoard.transition('NO_STATE');
       } else {
         this.won = false;
-        this.enemyBoard.transition(NO_STATE);
-        this.playerBoard.transition(WON_STATE);
+        this.enemyBoard.transition('NO_STATE');
+        this.playerBoard.transition('WON_STATE');
       }
     } else if (state[0] === 'turn' && state[1] == this.playerId) {
       if (this.enemyBoard.player === null) {
-        this.enemyBoard.transition(PLACE_PLAYER);
+        this.enemyBoard.transition('PLACE_PLAYER');
       } else {
-        this.enemyBoard.transition(MOVE_PLAYER);
+        this.enemyBoard.transition('MOVE_PLAYER');
       }
     } else {
-      this.playerBoard.transition(NO_STATE);
-      this.enemyBoard.transition(NO_STATE);
+      this.playerBoard.transition('NO_STATE');
+      this.enemyBoard.transition('NO_STATE');
     }
   }
 
@@ -144,7 +146,7 @@ export class Game {
       .push('build', payload)
       .receive('ok', () => {
         this.error = '';
-        this.playerBoard.transition(NO_STATE);
+        this.playerBoard.transition('NO_STATE');
       })
       .receive('error', () => {
         this.error = `The maze is not valid; a valid maze has to have an
@@ -153,7 +155,7 @@ export class Game {
   }
 
   @action movePlayer(direction) {
-    const [nextRow, nextCol] = next(...this.enemyBoard.player, direction);
+    const [nextRow, nextCol] = next(...this.enemyBoard.player!, direction);
     const payload = {
       action: {
         name: 'move_player',
@@ -165,7 +167,7 @@ export class Game {
       .push('turn', payload)
       .receive('ok', () => { this.error = ''; })
       .receive('error', () => {
-        const [playerRow, playerCol] = this.enemyBoard.player;
+        const [playerRow, playerCol] = this.enemyBoard.player!;
         this.enemyBoard.setWall(playerRow, playerCol, direction);
       });
   }
@@ -182,7 +184,7 @@ export class Game {
       .push('turn', payload)
       .receive('ok', () => { this.error = ''; })
       .receive('error', () => {
-        this.enemyBoard.cells[row][0].walls[LEFT] = true;
+        this.enemyBoard.cells[row][0].walls[Direction.Left] = true;
       });
   }
 
@@ -198,13 +200,17 @@ export class Game {
       .push('turn', payload)
       .receive('ok', () => { this.error = ''; })
       .receive('error', () => {
-        this.enemyBoard.cells[row][0].walls[LEFT] = true;
+        this.enemyBoard.cells[row][0].walls[Direction.Left] = true;
       });
   }
 }
 
+type GameViewProps = {
+  game: Game
+}
+
 @observer
-export class GameView extends Component {
+export class GameView extends Component<GameViewProps, {}> {
   render() {
     const game = this.props.game;
     const playerBoard = game.playerBoard;
@@ -231,7 +237,7 @@ export class GameView extends Component {
                 movePlayer={direction => game.movePlayer(direction)}
                 placePlayer={row => game.placePlayer(row)}
                 removePlayer={row => game.removePlayer(row)}
-                game={game.gameId}
+                gameId={game.gameId}
               />
               <br />
               {shareButton(game)}

@@ -12,7 +12,6 @@
 // If you no longer want to use a dependency, remember
 // to also remove its path from "config.paths.watched".
 import 'phoenix_html'
-import $ from 'jquery'
 import 'jquery'
 
 // Import local files
@@ -23,11 +22,11 @@ import 'jquery'
 global.jQuery = require('jquery');
 global.bootstrap = require('bootstrap');
 
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { observer } from 'mobx-react';
 import { Game, GameView } from './game.jsx';
-import { Replay, ReplayView } from './replay.jsx';
+import { Replay, ReplayView } from './replay.tsx';
 import socket from './socket.js';
 
 const element = document.getElementById('game');

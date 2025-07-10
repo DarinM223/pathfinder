@@ -1,20 +1,16 @@
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
-import {
-  PLACE_WALL,
-  PLACE_GOAL,
-  MOVE_PLAYER,
-  PLACE_PLAYER,
-  NO_STATE
-} from './board/data.js';
+import { } from './board/data.ts';
+import { Game } from './game.jsx';
 
-const styles = {
+const styles: { centerText: React.CSSProperties, centerList: React.CSSProperties, listItem: React.CSSProperties } = {
   centerText: {
     textAlign: 'center'
   },
   centerList: {
     display: "inline-block"
-  }
+  },
+  listItem: {}
 };
 
 const PLACE_WALL_TEXT = (
@@ -89,32 +85,36 @@ const errorAlert = (error) => (
   </div>
 );
 
+type GameTextViewProps = {
+  game: Game,
+}
+
 @observer
-export class GameTextView extends Component {
+export class GameTextView extends Component<GameTextViewProps, {}> {
   render() {
     const game = this.props.game;
-    let text = null;
-    let alert = null;
+    let text: React.JSX.Element | null = null;
+    let alert: React.JSX.Element | null = null;
 
     switch (game.playerBoard.state.type) {
-      case PLACE_GOAL:
+      case 'PLACE_GOAL':
         text = PLACE_GOAL_TEXT;
         break;
-      case PLACE_WALL:
+      case 'PLACE_WALL':
         text = PLACE_WALL_TEXT;
         break;
     }
     switch (game.enemyBoard.state.type) {
-      case MOVE_PLAYER:
+      case 'MOVE_PLAYER':
         text = MOVE_PLAYER_TEXT;
         break;
-      case PLACE_PLAYER:
+      case 'PLACE_PLAYER':
         text = PLACE_PLAYER_TEXT;
         break;
     }
-    if (game.enemyBoard.state.type === NO_STATE &&
-        game.playerBoard.state.type === NO_STATE &&
-        game.won === null) {
+    if (game.enemyBoard.state.type === 'NO_STATE' &&
+      game.playerBoard.state.type === 'NO_STATE' &&
+      game.won === null) {
       text = WAITING_TEXT;
     }
 
