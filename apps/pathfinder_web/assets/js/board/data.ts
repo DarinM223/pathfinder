@@ -57,6 +57,22 @@ export type Action =
     | { name: 'highlight_position', params: [[number, number]] } // Position to highlight.
   )
 
+export type BackendBoardCell = {
+  data: string,
+  top: boolean,
+  right: boolean,
+  bottom: boolean,
+  left: boolean,
+  row: number,
+  col: number
+}
+
+export type BackendBoard = {
+  player: Board["player"],
+  goal: Board["goal"],
+  cells: BackendBoardCell[],
+}
+
 export class Board {
   @observable cells = makeCells();
   @observable player: [number, number] | null = null;
@@ -91,14 +107,14 @@ export class Board {
     return walls;
   }
 
-  @action loadFromJSON(board) {
+  @action loadFromJSON(board: Board) {
     this.player = board.player;
     this.goal = board.goal;
     this.cells = board.cells;
     this.state = board.state;
   }
 
-  @action loadFromBackend(board) {
+  @action loadFromBackend(board: BackendBoard) {
     this.player = board.player;
     this.goal = board.goal;
 
@@ -286,7 +302,7 @@ export class Board {
     }
   }
 
-  @action toggleHighlight(row, col, goThroughWalls = true) {
+  @action toggleHighlight(row: number, col: number, goThroughWalls = true) {
     this.cells[row][col].highlight =
       this.cells[row][col].highlight ? null : Highlight.Selected;
 

@@ -26,7 +26,7 @@ export class Replay {
   changes: Action[]
   currentChange: number
 
-  constructor(playerId, changes: Action[]) {
+  constructor(playerId: string, changes: Action[]) {
     this.playerId = playerId;
     this.changes = changes;
     this.currentChange = -1;

@@ -1,7 +1,7 @@
 import React from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard-ts';
 import { Board } from './board/data.ts';
-import { Game } from './game.jsx';
+import { Game } from './game.tsx';
 
 const styles: { alignedToBoard: React.CSSProperties, middleButton: React.CSSProperties } = {
   alignedToBoard: {
@@ -98,7 +98,7 @@ export const clearButton = (board: Board) => {
   }
 };
 
-export const clearModal = (clearFn) => (
+export const clearModal = (clearFn: React.MouseEventHandler<HTMLButtonElement>) => (
   <div id="clearModal" className="modal fade" role="dialog">
     <div className="modal-dialog">
       <div className="modal-content">
@@ -125,7 +125,7 @@ export const clearModal = (clearFn) => (
   </div>
 );
 
-export const buildModal = (buildFn) => (
+export const buildModal = (buildFn: React.MouseEventHandler<HTMLButtonElement>) => (
   <div id="validateModal" className="modal fade" role="dialog">
     <div className="modal-dialog">
       <div className="modal-content">

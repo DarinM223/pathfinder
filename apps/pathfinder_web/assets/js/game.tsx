@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { action, observable } from 'mobx';
 import { observer } from 'mobx-react';
 import {
+  Action,
+  BackendBoard,
   Board,
   Direction,
   next,
@@ -19,6 +21,15 @@ import {
   clearModal
 } from './controls.tsx';
 
+type PlayerId = string
+type BackendState = ['win', PlayerId] | ['turn', PlayerId] | ['build', PlayerId | null]
+
+type BackendPlayer = {
+  board: BackendBoard,
+  enemy_board: BackendBoard,
+  state: BackendState,
+}
+
 export class Game {
   @observable playerBoard: Board;
   @observable enemyBoard: Board;
@@ -26,21 +37,21 @@ export class Game {
   @observable won: boolean | null = null;
 
   gameId: string
-  playerId: string
+  playerId: PlayerId
   shareId: string
   replayLink: string
 
   socket: any
   gamesChannel: any
 
-  constructor(socket, element) {
+  constructor(socket: any, element: HTMLElement) {
     this.socket = socket;
     this.playerBoard = new Board();
     this.enemyBoard = new Board();
-    this.gameId = element.getAttribute('data-id');
-    this.playerId = element.getAttribute('data-playerid');
-    this.shareId = element.getAttribute('data-shareid');
-    this.replayLink = element.getAttribute('data-replaylink');
+    this.gameId = element.getAttribute('data-id')!;
+    this.playerId = element.getAttribute('data-playerid')!;
+    this.shareId = element.getAttribute('data-shareid')!;
+    this.replayLink = element.getAttribute('data-replaylink')!;
 
     this.socket.connect();
 
@@ -50,7 +61,7 @@ export class Game {
   ready() {
     this.gamesChannel = this.socket.channel(`games:${this.gameId}`);
 
-    this.gamesChannel.on('next', ({ changes, state }) => {
+    this.gamesChannel.on('next', ({ changes, state }: { changes: Action[], state: BackendState }) => {
       if (changes.length > 0 && state.length === 2) {
         for (const change of changes) {
           switch (state[0]) {
@@ -75,7 +86,7 @@ export class Game {
     });
 
     this.gamesChannel.join()
-      .receive('ok', (player) => {
+      .receive('ok', (player: BackendPlayer) => {
         if (player !== null) {
           const board = JSON.parse(localStorage.getItem(storageId(this.gameId))!);
           if (player.state[0] === 'build' && typeof board !== 'undefined' && board !== null) {
@@ -90,7 +101,7 @@ export class Game {
           this.playerBoard.transition('PLACE_WALL');
         }
       })
-      .receive('error', (reason) => console.log('join failed', reason));
+      .receive('error', (reason: any) => console.log('join failed', reason));
   }
 
   @action clear() {
@@ -100,7 +111,7 @@ export class Game {
     this.playerBoard.state = state;
   }
 
-  @action onNextState(state) {
+  @action onNextState(state: BackendState) {
     if (state[0] === 'build') {
       if (state[1] === null || state[1] != this.playerId) {
         this.playerBoard.transition('PLACE_WALL');
@@ -154,7 +165,7 @@ export class Game {
       });
   }
 
-  @action movePlayer(direction) {
+  @action movePlayer(direction: Direction) {
     const [nextRow, nextCol] = next(...this.enemyBoard.player!, direction);
     const payload = {
       action: {
@@ -172,7 +183,7 @@ export class Game {
       });
   }
 
-  @action placePlayer(row) {
+  @action placePlayer(row: number) {
     const payload = {
       action: {
         name: 'place_player',
@@ -188,7 +199,7 @@ export class Game {
       });
   }
 
-  @action removePlayer(row) {
+  @action removePlayer(row: number) {
     const payload = {
       action: {
         name: 'remove_player',

@@ -74,12 +74,12 @@ const LOSE_TEXT = (
     <h2 style={styles.centerText}>{"You lost!"}</h2>
   </div>
 );
-const replayAlert = (replayLink) => (
+const replayAlert = (replayLink: string) => (
   <div className="alert alert-success" style={styles.centerText} role="alert">
     Replay of the game was uploaded <a href={replayLink}>here</a>
   </div>
 );
-const errorAlert = (error) => (
+const errorAlert = (error: string) => (
   <div className="alert alert-danger" style={styles.centerText} role="alert">
     {error}
   </div>
