@@ -1,23 +1,22 @@
 defmodule Pathfinder.Supervisor do
-  use Supervisor
+  use DynamicSupervisor
 
   @registry Application.compile_env(:pathfinder, :registry)
 
   def start_link(opts \\ [name: Pathfinder.Supervisor]) do
-    Supervisor.start_link(__MODULE__, :ok, opts)
+    DynamicSupervisor.start_link(__MODULE__, :ok, opts)
   end
 
-  def start_child(supervisor, id, stash, player1, player2) do
+  def start_child(id, stash, player1, player2) do
     game_id = {@registry, id}
-    result = Supervisor.start_child(supervisor, [game_id, stash, {player1, player2}])
+
+    spec = Pathfinder.Worker.child_spec([game_id, stash, {player1, player2}])
+    result = DynamicSupervisor.start_child(__MODULE__, spec)
+
     with {:ok, _} <- result, do: {:ok, game_id}
   end
 
   def init(:ok) do
-    children = [
-      Pathfinder.Worker
-    ]
-
-    Supervisor.init(children, strategy: :simple_one_for_one, max_restarts: 100)
+    DynamicSupervisor.init(max_restarts: 100, strategy: :one_for_one)
   end
 end

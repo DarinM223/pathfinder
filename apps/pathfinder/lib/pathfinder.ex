@@ -31,7 +31,6 @@ defmodule Pathfinder do
   """
   def add(id, player1, player2, stash \\ Pathfinder.Stash) do
     Pathfinder.Supervisor.start_child(
-      Pathfinder.Supervisor,
       id,
       stash,
       player1,
