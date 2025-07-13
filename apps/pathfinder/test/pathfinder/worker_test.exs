@@ -5,7 +5,7 @@ defmodule Pathfinder.WorkerTest do
 
   setup context do
     registry = :"#{context.test}_registry"
-    {:ok, _} = Registry.start_link(:unique, registry)
+    {:ok, _} = Registry.start_link(keys: :unique, name: registry)
     {:ok, stash} = Stash.start_link(name: :"#{context.test}_stash")
     worker = "#{context.test}_worker"
 

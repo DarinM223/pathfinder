@@ -4,7 +4,7 @@ defmodule Pathfinder.AITest do
   alias Pathfinder.AI
   alias Pathfinder.Board
 
-  @column_size Application.get_env(:pathfinder, :column_size)
+  @column_size Application.compile_env(:pathfinder, :column_size)
 
   test "move/2 with new AI attempts to place the player on a random row" do
     {_, true, move} = AI.move(AI.new(), Board.new())
