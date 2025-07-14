@@ -17,6 +17,8 @@ defmodule PathfinderWeb.Web.ConnCase do
 
   using do
     quote do
+      use PathfinderWeb.Web, :verified_routes
+
       # Import conveniences for testing with connections
       import Plug.Conn
       import Phoenix.ConnTest

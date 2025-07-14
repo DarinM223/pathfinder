@@ -15,6 +15,7 @@ defmodule PathfinderWeb.Web do
   Do NOT define functions inside the quoted expressions
   below.
   """
+  def static_paths, do: ~w(css fonts images js favicon.ico robots.txt)
 
   def controller do
     quote do
@@ -24,6 +25,7 @@ defmodule PathfinderWeb.Web do
       import PathfinderWeb.Web.Gettext
 
       import PathfinderWeb.Web.Auth, only: [authenticate_user: 2]
+      unquote(verified_routes())
     end
   end
 
@@ -42,6 +44,7 @@ defmodule PathfinderWeb.Web do
       import PathfinderWeb.Web.Router.Helpers
       import PathfinderWeb.Web.ErrorHelpers
       import PathfinderWeb.Web.Gettext
+      unquote(verified_routes())
     end
   end
 
@@ -67,5 +70,14 @@ defmodule PathfinderWeb.Web do
   """
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])
+  end
+
+  def verified_routes do
+    quote do
+      use Phoenix.VerifiedRoutes,
+        endpoint: PathfinderWeb.Web.Endpoint,
+        router: PathfinderWeb.Web.Router,
+        statics: PathfinderWeb.Web.static_paths()
+    end
   end
 end
