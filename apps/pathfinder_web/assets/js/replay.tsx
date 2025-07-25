@@ -1,31 +1,32 @@
 import React, { Component } from 'react';
 import { action, observable } from 'mobx';
-import { observer } from 'mobx-react';
-import { BoardView } from './board/view.js';
-import {
-  Board,
-  LEFT,
-  PLACE_WALL,
-  PLACE_GOAL,
-  MOVE_PLAYER,
-  PLACE_PLAYER,
-  NO_STATE,
-  WON_STATE,
-  next,
-  storageId
-} from './board/data.js';
+import { BoardView } from './board/view.tsx';
+import { Board, Action, } from './board/data.ts';
 
-const BUILD_CHANGES = [
+const BUILD_CHANGES: Action["name"][] = [
   'set_wall',
   'place_goal'
 ];
+
+type TupleToUnion<T> =
+  T extends [infer H, ...infer R] ? H | TupleToUnion<R> : never;
+
+type BUILD_CHANGE_TYPES = TupleToUnion<typeof BUILD_CHANGES>
+
+type Change = {
+  name: BUILD_CHANGE_TYPES,
+}
 
 export class Replay {
   @observable playerBoard = new Board();
   @observable enemyBoard = new Board();
   @observable won = null;
 
-  constructor(playerId, changes) {
+  playerId: string
+  changes: Action[]
+  currentChange: number
+
+  constructor(playerId: string, changes: Action[]) {
     this.playerId = playerId;
     this.changes = changes;
     this.currentChange = -1;
@@ -77,7 +78,11 @@ export class Replay {
   }
 }
 
-export class ReplayView extends Component {
+type ReplayViewProps = {
+  replay: Replay,
+}
+
+export class ReplayView extends Component<ReplayViewProps, {}> {
   render() {
     const replay = this.props.replay;
     return (
@@ -91,7 +96,7 @@ export class ReplayView extends Component {
             </div>
             <div className="col-md-4">
               <h3>{"Other player's board"}</h3>
-              <BoardView board={replay.enemyBoard} game={null} />
+              <BoardView board={replay.enemyBoard} gameId={null} />
             </div>
             <div className="col-md-2" />
           </div>

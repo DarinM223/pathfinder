@@ -1,15 +1,20 @@
 defmodule PathfinderSocket do
   use Application
 
-  @registry Application.get_env(:pathfinder_socket, :registry)
+  @registry Application.compile_env(:pathfinder_socket, :registry)
 
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
 
     children = [
-      supervisor(PathfinderSocket.Supervisor, []),
-      supervisor(Registry, [:unique, @registry]),
-      worker(Pathfinder.Stash, [[name: PathfinderSocket.Stash]])
+      %{
+        id: PathfinderSocket.Supervisor,
+        start: {PathfinderSocket.Supervisor, :start_link, []},
+        shutdown: :infinity,
+        type: :supervisor
+      },
+      {Registry, [keys: :unique, name: @registry]},
+      {Pathfinder.Stash, [name: PathfinderSocket.Stash]}
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one, name: __MODULE__)

@@ -1,4 +1,6 @@
 defmodule Pathfinder.Stash do
+  use Agent
+
   def start_link(opts \\ [name: Pathfinder.Stash]) do
     Agent.start_link(fn -> %{} end, opts)
   end

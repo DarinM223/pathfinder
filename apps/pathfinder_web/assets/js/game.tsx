@@ -2,19 +2,15 @@ import React, { Component } from 'react';
 import { action, observable } from 'mobx';
 import { observer } from 'mobx-react';
 import {
+  Action,
+  BackendBoard,
   Board,
-  LEFT,
-  PLACE_WALL,
-  PLACE_GOAL,
-  MOVE_PLAYER,
-  PLACE_PLAYER,
-  NO_STATE,
-  WON_STATE,
+  Direction,
   next,
   storageId
-} from './board/data.js';
-import { BoardView } from './board/view.js';
-import { GameTextView } from './text.js';
+} from './board/data.ts';
+import { BoardView } from './board/view.tsx';
+import { GameTextView } from './text.tsx';
 import {
   switchButton,
   boardStatus,
@@ -23,22 +19,39 @@ import {
   clearButton,
   buildModal,
   clearModal
-} from './controls.js';
+} from './controls.tsx';
+
+type PlayerId = string
+type BackendState = ['win', PlayerId] | ['turn', PlayerId] | ['build', PlayerId | null]
+
+type BackendPlayer = {
+  board: BackendBoard,
+  enemy_board: BackendBoard,
+  state: BackendState,
+}
 
 export class Game {
-  @observable playerBoard;
-  @observable enemyBoard;
-  @observable error = null;
-  @observable won = null;
+  @observable playerBoard: Board;
+  @observable enemyBoard: Board;
+  @observable error: string | null = null;
+  @observable won: boolean | null = null;
 
-  constructor(socket, element) {
+  gameId: string
+  playerId: PlayerId
+  shareId: string
+  replayLink: string
+
+  socket: any
+  gamesChannel: any
+
+  constructor(socket: any, element: HTMLElement) {
     this.socket = socket;
     this.playerBoard = new Board();
     this.enemyBoard = new Board();
-    this.gameId = element.getAttribute('data-id');
-    this.playerId = element.getAttribute('data-playerid');
-    this.shareId = element.getAttribute('data-shareid');
-    this.replayLink = element.getAttribute('data-replaylink');
+    this.gameId = element.getAttribute('data-id')!;
+    this.playerId = element.getAttribute('data-playerid')!;
+    this.shareId = element.getAttribute('data-shareid')!;
+    this.replayLink = element.getAttribute('data-replaylink')!;
 
     this.socket.connect();
 
@@ -48,7 +61,7 @@ export class Game {
   ready() {
     this.gamesChannel = this.socket.channel(`games:${this.gameId}`);
 
-    this.gamesChannel.on('next', ({ changes, state }) => {
+    this.gamesChannel.on('next', ({ changes, state }: { changes: Action[], state: BackendState }) => {
       if (changes.length > 0 && state.length === 2) {
         for (const change of changes) {
           switch (state[0]) {
@@ -73,9 +86,9 @@ export class Game {
     });
 
     this.gamesChannel.join()
-      .receive('ok', (player) => {
+      .receive('ok', (player: BackendPlayer) => {
         if (player !== null) {
-          const board = JSON.parse(localStorage.getItem(storageId(this.gameId)));
+          const board = JSON.parse(localStorage.getItem(storageId(this.gameId))!);
           if (player.state[0] === 'build' && typeof board !== 'undefined' && board !== null) {
             this.playerBoard.loadFromJSON(board);
           } else {
@@ -85,10 +98,10 @@ export class Game {
 
           this.onNextState(player.state);
         } else {
-          this.playerBoard.transition(PLACE_WALL);
+          this.playerBoard.transition('PLACE_WALL');
         }
       })
-      .receive('error', (reason) => console.log('join failed', reason));
+      .receive('error', (reason: any) => console.log('join failed', reason));
   }
 
   @action clear() {
@@ -98,32 +111,32 @@ export class Game {
     this.playerBoard.state = state;
   }
 
-  @action onNextState(state) {
+  @action onNextState(state: BackendState) {
     if (state[0] === 'build') {
       if (state[1] === null || state[1] != this.playerId) {
-        this.playerBoard.transition(PLACE_WALL);
+        this.playerBoard.transition('PLACE_WALL');
       } else {
-        this.playerBoard.transition(NO_STATE);
+        this.playerBoard.transition('NO_STATE');
       }
     } else if (state[0] === 'win') {
       if (state[1] == this.playerId) {
         this.won = true;
-        this.enemyBoard.transition(WON_STATE);
-        this.playerBoard.transition(NO_STATE);
+        this.enemyBoard.transition('WON_STATE');
+        this.playerBoard.transition('NO_STATE');
       } else {
         this.won = false;
-        this.enemyBoard.transition(NO_STATE);
-        this.playerBoard.transition(WON_STATE);
+        this.enemyBoard.transition('NO_STATE');
+        this.playerBoard.transition('WON_STATE');
       }
     } else if (state[0] === 'turn' && state[1] == this.playerId) {
       if (this.enemyBoard.player === null) {
-        this.enemyBoard.transition(PLACE_PLAYER);
+        this.enemyBoard.transition('PLACE_PLAYER');
       } else {
-        this.enemyBoard.transition(MOVE_PLAYER);
+        this.enemyBoard.transition('MOVE_PLAYER');
       }
     } else {
-      this.playerBoard.transition(NO_STATE);
-      this.enemyBoard.transition(NO_STATE);
+      this.playerBoard.transition('NO_STATE');
+      this.enemyBoard.transition('NO_STATE');
     }
   }
 
@@ -144,7 +157,7 @@ export class Game {
       .push('build', payload)
       .receive('ok', () => {
         this.error = '';
-        this.playerBoard.transition(NO_STATE);
+        this.playerBoard.transition('NO_STATE');
       })
       .receive('error', () => {
         this.error = `The maze is not valid; a valid maze has to have an
@@ -152,8 +165,8 @@ export class Game {
       });
   }
 
-  @action movePlayer(direction) {
-    const [nextRow, nextCol] = next(...this.enemyBoard.player, direction);
+  @action movePlayer(direction: Direction) {
+    const [nextRow, nextCol] = next(...this.enemyBoard.player!, direction);
     const payload = {
       action: {
         name: 'move_player',
@@ -165,12 +178,12 @@ export class Game {
       .push('turn', payload)
       .receive('ok', () => { this.error = ''; })
       .receive('error', () => {
-        const [playerRow, playerCol] = this.enemyBoard.player;
+        const [playerRow, playerCol] = this.enemyBoard.player!;
         this.enemyBoard.setWall(playerRow, playerCol, direction);
       });
   }
 
-  @action placePlayer(row) {
+  @action placePlayer(row: number) {
     const payload = {
       action: {
         name: 'place_player',
@@ -182,11 +195,11 @@ export class Game {
       .push('turn', payload)
       .receive('ok', () => { this.error = ''; })
       .receive('error', () => {
-        this.enemyBoard.cells[row][0].walls[LEFT] = true;
+        this.enemyBoard.cells[row][0].walls[Direction.Left] = true;
       });
   }
 
-  @action removePlayer(row) {
+  @action removePlayer(row: number) {
     const payload = {
       action: {
         name: 'remove_player',
@@ -198,13 +211,17 @@ export class Game {
       .push('turn', payload)
       .receive('ok', () => { this.error = ''; })
       .receive('error', () => {
-        this.enemyBoard.cells[row][0].walls[LEFT] = true;
+        this.enemyBoard.cells[row][0].walls[Direction.Left] = true;
       });
   }
 }
 
+type GameViewProps = {
+  game: Game
+}
+
 @observer
-export class GameView extends Component {
+export class GameView extends Component<GameViewProps, {}> {
   render() {
     const game = this.props.game;
     const playerBoard = game.playerBoard;
@@ -231,7 +248,7 @@ export class GameView extends Component {
                 movePlayer={direction => game.movePlayer(direction)}
                 placePlayer={row => game.placePlayer(row)}
                 removePlayer={row => game.removePlayer(row)}
-                game={game.gameId}
+                gameId={game.gameId}
               />
               <br />
               {shareButton(game)}

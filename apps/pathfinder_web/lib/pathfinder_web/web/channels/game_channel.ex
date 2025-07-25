@@ -124,7 +124,7 @@ defmodule PathfinderWeb.Web.GameChannel do
             action: {name, params}
           })
 
-        time = Ecto.DateTime.utc()
+        time = DateTime.utc_now() |> DateTime.truncate(:second)
 
         change =
           change

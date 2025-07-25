@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -12,12 +12,8 @@ config :pathfinder_web, PathfinderWeb.Web.Endpoint,
   code_reloader: true,
   check_origin: false,
   watchers: [
-    node: [
-      "node_modules/brunch/bin/brunch",
-      "watch",
-      "--stdin",
-      cd: Path.expand("../assets", __DIR__)
-    ]
+    # Start the esbuild watcher by calling Esbuild.install_and_run(:default, args)
+    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]}
   ]
 
 # ## SSL Support
@@ -61,4 +57,5 @@ config :pathfinder_web, PathfinderWeb.Repo,
   password: "postgres",
   database: "pathfinder_web_dev",
   hostname: "localhost",
-  pool_size: 10
+  pool_size: 10,
+  migration_timestamps: [type: :timestamptz]

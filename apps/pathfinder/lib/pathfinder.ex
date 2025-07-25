@@ -5,7 +5,7 @@ defmodule Pathfinder do
 
   use Application
 
-  @registry Application.get_env(:pathfinder, :registry)
+  @registry Application.compile_env(:pathfinder, :registry)
   @max_timeout 1_000
   @retry_time 200
 
@@ -13,9 +13,14 @@ defmodule Pathfinder do
     import Supervisor.Spec, warn: false
 
     children = [
-      supervisor(Pathfinder.Supervisor, []),
-      supervisor(Registry, [:unique, @registry]),
-      worker(Pathfinder.Stash, [])
+      %{
+        id: Pathfinder.Supervisor,
+        start: {Pathfinder.Supervisor, :start_link, []},
+        shutdown: :infinity,
+        type: :supervisor
+      },
+      {Registry, [keys: :unique, name: @registry]},
+      {Pathfinder.Stash, name: Pathfinder.Stash}
     ]
 
     Supervisor.start_link(children, strategy: :one_for_one, name: __MODULE__)
@@ -26,7 +31,6 @@ defmodule Pathfinder do
   """
   def add(id, player1, player2, stash \\ Pathfinder.Stash) do
     Pathfinder.Supervisor.start_child(
-      Pathfinder.Supervisor,
       id,
       stash,
       player1,

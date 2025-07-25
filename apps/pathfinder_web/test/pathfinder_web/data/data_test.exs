@@ -110,7 +110,8 @@ defmodule PathfinderWeb.DataTest do
   end
 
   test "list_user_created_games returns games user created and \
-        list_user_participating_games returns games user is participating in", %{user: user} do
+        list_user_participating_games returns games user is participating in",
+       %{user: user} do
     {:ok, other} = insert_user(%{username: "foo"})
 
     {:ok, game1} = insert_game(user)
@@ -197,6 +198,9 @@ defmodule PathfinderWeb.DataTest do
           })
 
         {:ok, _} = Data.update_game(game, %{winner: winner})
+
+        # Sleep for 1 second because we truncate timestamps to seconds only.
+        Process.sleep(1000)
 
         other_user.username
       end)

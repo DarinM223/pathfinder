@@ -6,7 +6,7 @@ defmodule Pathfinder.AI do
   alias Pathfinder.AI
   alias Pathfinder.Board
 
-  @column_size Application.get_env(:pathfinder, :column_size)
+  @column_size Application.compile_env(:pathfinder, :column_size)
 
   defstruct tried_entry_rows: MapSet.new(),
             visited: MapSet.new(),

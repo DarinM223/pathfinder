@@ -6,9 +6,12 @@
       <p class="lead">A board game written in Elixir using the Phoenix web framework.</p>
 
       <%= if @current_user do %>
-        <%= link "Go to your games", to: game_path(@conn, :index), class: "btn btn-primary btn-lg" %>
+        <%= link("Go to your games", to: game_path(@conn, :index), class: "btn btn-primary btn-lg") %>
       <% else %>
-        <%= link "Create a new account", to: user_path(@conn, :new), class: "btn btn-primary btn-lg" %>
+        <%= link("Create a new account",
+          to: user_path(@conn, :new),
+          class: "btn btn-primary btn-lg"
+        ) %>
       <% end %>
     </div>
   </div>

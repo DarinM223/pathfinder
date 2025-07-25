@@ -12,7 +12,7 @@ defmodule PathfinderSocket.Client do
   @behaviour GenSocketClient
   @bot_id -2
 
-  def start_link({registry, id}, stash, url, endpoint, opts \\ []) when is_binary(id) do
+  def start_link(opts \\ [], {registry, id}, stash, url, endpoint) do
     name = {:via, Registry, {registry, id}}
 
     GenSocketClient.start_link(
@@ -177,11 +177,11 @@ defmodule PathfinderSocket.Client do
     {:ok, state}
   end
 
-  def handle_call(:state, _from, state) do
+  def handle_call(:state, _from, _transport, state) do
     {:reply, state, state}
   end
 
-  def terminate(_reason, %{stash: stash, game_id: id} = state) do
+  def terminate(_reason, %{callback_state: %{stash: stash, game_id: id} = state}) do
     Stash.set(stash, id, state)
   end
 
@@ -194,5 +194,15 @@ defmodule PathfinderSocket.Client do
 
   def serialize_change({name, params}) do
     %{"name" => Atom.to_string(name), "params" => convert_to_lists(params)}
+  end
+
+  def child_spec(opts) do
+    %{
+      id: __MODULE__,
+      start: {__MODULE__, :start_link, [opts]},
+      type: :worker,
+      restart: :permanent,
+      shutdown: 500
+    }
   end
 end

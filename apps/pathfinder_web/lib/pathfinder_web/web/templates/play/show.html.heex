@@ -4,7 +4,9 @@
 <% end %>
 
 <%= if @token do %>
-  <script>window.unauthorizedUserToken = '<%= @token %>';</script>
+  <script>
+    window.unauthorizedUserToken = '<%= @token %>';
+  </script>
 <% end %>
 
 <div id="game"></div>

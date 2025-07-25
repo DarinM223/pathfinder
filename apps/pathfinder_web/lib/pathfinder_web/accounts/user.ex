@@ -11,7 +11,7 @@ defmodule PathfinderWeb.Accounts.User do
     field(:password_hash, :string)
     has_many(:games, PathfinderWeb.Data.Game)
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   @doc false

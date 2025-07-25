@@ -6,7 +6,7 @@ defmodule PathfinderWeb.Web.ReplayView do
   def replay_changes(changes) do
     changes
     |> Enum.map(&clean_data/1)
-    |> Poison.encode!()
+    |> Jason.encode!()
   end
 
   defp clean_data(%{name: name, args: args, user_id: user_id}) do

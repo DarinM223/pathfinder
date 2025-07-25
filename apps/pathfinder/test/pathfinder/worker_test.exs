@@ -5,7 +5,7 @@ defmodule Pathfinder.WorkerTest do
 
   setup context do
     registry = :"#{context.test}_registry"
-    {:ok, _} = Registry.start_link(:unique, registry)
+    {:ok, _} = Registry.start_link(keys: :unique, name: registry)
     {:ok, stash} = Stash.start_link(name: :"#{context.test}_stash")
     worker = "#{context.test}_worker"
 
@@ -16,7 +16,7 @@ defmodule Pathfinder.WorkerTest do
     id = {registry, worker}
     Stash.set(stash, worker, :game)
 
-    {:ok, _} = Pathfinder.Worker.start_link(id, stash, {0, -1})
+    {:ok, _} = Pathfinder.Worker.start_link([id, stash, {0, -1}])
     assert Pathfinder.state(id) == :game
   end
 
@@ -26,7 +26,7 @@ defmodule Pathfinder.WorkerTest do
     worker: worker
   } do
     id = {registry, worker}
-    {:ok, _} = Pathfinder.Worker.start_link(id, stash, {0, 1})
+    {:ok, _} = Pathfinder.Worker.start_link([id, stash, {0, 1}])
 
     changes = [
       {:place_goal, [{2, 2}]},
