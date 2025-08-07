@@ -5,5 +5,8 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "jsx": "react",
+    "target": "es2017",
+    "moduleResolution": "nodenext",
+    "module": "nodenext"
   }
 }
