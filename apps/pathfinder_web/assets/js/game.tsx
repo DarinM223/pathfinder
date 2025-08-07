@@ -31,10 +31,10 @@ type BackendPlayer = {
 }
 
 export class Game {
-  @observable playerBoard: Board;
-  @observable enemyBoard: Board;
-  @observable error: string | null = null;
-  @observable won: boolean | null = null;
+  @observable accessor playerBoard: Board;
+  @observable accessor enemyBoard: Board;
+  @observable accessor error: string | null = null;
+  @observable accessor won: boolean | null = null;
 
   gameId: string
   playerId: PlayerId

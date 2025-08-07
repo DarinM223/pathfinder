@@ -26,9 +26,28 @@ export enum CellData {
 }
 
 export class Cell {
-  @observable data: CellData | null = null;
-  @observable walls = [false, false, false, false];
-  @observable highlight: Highlight | null = null;
+  @observable accessor data: CellData | null = null;
+  @observable accessor walls = [false, false, false, false];
+  @observable accessor highlight: Highlight | null = null;
+
+  /**
+   * Observable accessors are now properties and are not enumerable.
+   * So JSON stringify won't work without explicitly specifying this.
+   * @returns a JSON objects with the properties
+   */
+  toJSON() {
+    return {
+      data: this.data,
+      walls: this.walls,
+      highlight: this.highlight,
+    };
+  }
+
+  @action loadFromJSON(cell: Cell) {
+    this.data = cell.data;
+    this.walls = cell.walls;
+    this.highlight = cell.highlight;
+  }
 
   constructor() { }
 }
@@ -74,10 +93,24 @@ export type BackendBoard = {
 }
 
 export class Board {
-  @observable cells = makeCells();
-  @observable player: [number, number] | null = null;
-  @observable goal: [number, number] | null = null;
-  @observable state: BoardState = { type: 'NO_STATE' };
+  @observable accessor cells = makeCells();
+  @observable accessor player: [number, number] | null = null;
+  @observable accessor goal: [number, number] | null = null;
+  @observable accessor state: BoardState = { type: 'NO_STATE' };
+
+  /**
+   * Observable accessors are now properties and are not enumerable.
+   * So JSON stringify won't work without explicitly specifying this.
+   * @returns a JSON objects with the properties
+   */
+  toJSON() {
+    return {
+      cells: this.cells.map((cells) => cells.map((cell) => cell.toJSON())),
+      player: this.player,
+      goal: this.goal,
+      state: this.state,
+    };
+  }
 
   @computed get setWallActions() {
     const walls: Action[] = [];
@@ -110,7 +143,11 @@ export class Board {
   @action loadFromJSON(board: Board) {
     this.player = board.player;
     this.goal = board.goal;
-    this.cells = board.cells;
+    this.cells = board.cells.map((cells) => cells.map((cell) => {
+      const newCell = new Cell();
+      newCell.loadFromJSON(cell);
+      return newCell;
+    }));
     this.state = board.state;
   }
 
