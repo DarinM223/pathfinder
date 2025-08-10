@@ -1,4 +1,4 @@
-import { action, observable, computed } from 'mobx';
+import { action, observable, computed, runInAction } from 'mobx';
 
 /*
  * Direction types.
@@ -67,7 +67,7 @@ export type BoardState =
   { type: 'WON_STATE' }
 
 export type Action =
-  { user_id?: string } &
+  { user_id?: string, succeeded: boolean } &
   ({ name: 'set_wall', params: [number, boolean] | [[number, number], [number, number], boolean] }
     | { name: 'place_goal', params: [[number, number]] } // Position where goal is placed.
     | { name: 'place_player', params: [number] } // Row where player is placed.
@@ -123,6 +123,7 @@ export class Board {
             walls.push({
               name: 'set_wall',
               params: [[row + 1, col + 1], [nextRow + 1, nextCol + 1], true],
+              succeeded: false,
             });
           }
         }
@@ -133,6 +134,7 @@ export class Board {
         walls.push({
           name: 'set_wall',
           params: [row + 1, true],
+          succeeded: false,
         });
       }
     }
@@ -196,13 +198,13 @@ export class Board {
       case 'place_player':
         const row = action.params[0] - 1;
         this.temporaryHighlight(row, 0, Highlight.Hint);
-        this.placePlayer(row);
+        action.succeeded = this.placePlayer(row);
         break;
       case 'move_player':
         const direction = action.params[0] - 1;
         const nextPosition = next(...this.player!, direction);
         this.temporaryHighlight(...nextPosition, Highlight.Hint);
-        this.movePlayer(direction);
+        action.succeeded = this.movePlayer(direction);
         break;
       case 'remove_player':
         this.temporaryHighlight(...this.player!, Highlight.Hint);
@@ -219,6 +221,7 @@ export class Board {
   @action undoAction(action: Action) {
     switch (action.name) {
       case 'place_player':
+        this.temporaryHighlight(action.params[0] - 1, 0, Highlight.Hint);
         if (this.player !== null) {
           const oldPosition = this.player;
           this.removePlayer(false);
@@ -232,7 +235,12 @@ export class Board {
       case 'move_player':
         if (this.player !== null) {
           const oldPosition = this.player;
-          this.movePlayer(reverse(action.params[0] - 1), false);
+          if (action.succeeded) {
+            this.movePlayer(reverse(action.params[0] - 1), false);
+          } else {
+            const position = next(...this.player!, action.params[0] - 1);
+            this.temporaryHighlight(...position, Highlight.Hint);
+          }
           if (this.goal !== null &&
             this.goal[0] === oldPosition[0] &&
             this.goal[1] === oldPosition[1]) {
@@ -380,9 +388,9 @@ export class Board {
       !this.cells[row][0].walls[Direction.Left];
   }
 
-  @action placePlayer(row: number) {
+  @action placePlayer(row: number): boolean {
     if (this.cells[row][0].walls[Direction.Left] === true) {
-      return;
+      return false;
     }
 
     if (this.player !== null) {
@@ -391,17 +399,18 @@ export class Board {
     }
     this.cells[row][0].data = CellData.Player;
     this.player = [row, 0];
+    return true;
   }
 
-  @action movePlayer(direction: Direction, addMarker = true) {
+  @action movePlayer(direction: Direction, addMarker = true): boolean {
     const [row, col] = this.player!;
     if (this.cells[row][col].walls[direction] === true) {
-      return;
+      return false;
     }
 
     const [nextRow, nextCol] = next(row, col, direction);
     if (!isValidCell(nextRow, nextCol)) {
-      return;
+      return false;
     }
 
     if (addMarker) {
@@ -411,6 +420,7 @@ export class Board {
     }
     this.cells[nextRow][nextCol].data = CellData.Player;
     this.player = [nextRow, nextCol];
+    return true;
   }
 
   @action removePlayer(addMarker = true) {
@@ -438,7 +448,7 @@ export class Board {
   @action temporaryHighlight(row: number, col: number, highlight: Highlight, timeout = 1000) {
     this.cells[row][col].highlight = highlight;
     setTimeout(() => {
-      this.cells[row][col].highlight = null;
+      runInAction(() => { this.cells[row][col].highlight = null; });
     }, timeout);
   }
 }
