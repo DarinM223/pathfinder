@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { computed } from 'mobx'
 import { observer } from 'mobx-react';
 import {
   Direction,
@@ -99,19 +100,24 @@ export class BoardView extends Component<BoardViewProps, {}> {
     placePlayer: (_: number) => { },
   }
 
+  @computed get serializedBoard() {
+    const board = this.props.board;
+    return JSON.stringify(board.toJSON());
+  }
+
   onCellClick(row: number, col: number) {
     const player = this.props.board.player;
     switch (this.props.board.state.type) {
       case 'PLACE_WALL':
         this.props.board.placeWall(row, col);
         if (this.props.gameId !== null) {
-          localStorage.setItem(storageId(this.props.gameId), JSON.stringify(this.props.board));
+          localStorage.setItem(storageId(this.props.gameId), this.serializedBoard);
         }
         break;
       case 'PLACE_GOAL':
         this.props.board.placeGoal(row, col);
         if (this.props.gameId !== null) {
-          localStorage.setItem(storageId(this.props.gameId), JSON.stringify(this.props.board));
+          localStorage.setItem(storageId(this.props.gameId), this.serializedBoard);
         }
         break;
       case 'MOVE_PLAYER':

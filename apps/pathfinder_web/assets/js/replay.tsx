@@ -18,9 +18,9 @@ type Change = {
 }
 
 export class Replay {
-  @observable playerBoard = new Board();
-  @observable enemyBoard = new Board();
-  @observable won = null;
+  @observable accessor playerBoard = new Board();
+  @observable accessor enemyBoard = new Board();
+  @observable accessor won = null;
 
   playerId: string
   changes: Action[]

@@ -41,38 +41,20 @@ const PLACE_GOAL_TEXT = (
   </div>
 );
 const MOVE_PLAYER_TEXT = (
-  <div>
-    <h2 style={styles.centerText}>Your Turn</h2>
-    <div style={styles.centerText}>
-      <ul style={styles.centerList}>
-        <li style={styles.listItem}>Click on one of the highlighted cells adjacent to the player to attempt to move there.</li>
-        <li style={styles.listItem}>{"If the player is on the first column, clicking the player's cell will attempt to move out of the board."}</li>
-      </ul>
-    </div>
-  </div>
+  <h2 style={styles.centerText} title="Click on one of the highlighted cells adjacent to the player to attempt to move there.
+If the player is on the first column, clicking the player's cell will attempt to move out of the board.">Your Turn</h2>
 );
 const PLACE_PLAYER_TEXT = (
-  <div>
-    <h2 style={styles.centerText}>Your Turn</h2>
-    <div style={styles.centerText}>
-      <ul style={styles.centerList}>
-        <li style={styles.listItem}>Click on one of the highlighted cells to attempt to place the player there.</li>
-      </ul>
-    </div>
-  </div>
+  <h2 style={styles.centerText} title="Click on one of the highlighted cells to attempt to place the player there.">Your Turn</h2>
 );
 const WAITING_TEXT = (
   <h2 style={styles.centerText}>Waiting for other player...</h2>
 );
 const WON_TEXT = (
-  <div>
-    <h2 style={styles.centerText}>{"You won!"}</h2>
-  </div>
+  <h2 style={styles.centerText}>{"You won!"}</h2>
 );
 const LOSE_TEXT = (
-  <div>
-    <h2 style={styles.centerText}>{"You lost!"}</h2>
-  </div>
+  <h2 style={styles.centerText}>{"You lost!"}</h2>
 );
 const replayAlert = (replayLink: string) => (
   <div className="alert alert-success" style={styles.centerText} role="alert">

@@ -26,7 +26,7 @@ config :logger, :console,
 config :esbuild,
   version: "0.25.5",
   default: [
-    args: ~w(js/app.jsx --bundle --target=es2016 --outdir=../priv/static/assets),
+    args: ~w(css/app.css css/bootstrap.min.css static/images/icon.png js/bootstrap.min.js js/app.jsx --bundle --target=es2017 --outdir=../priv/static/assets --loader:.css=copy --loader:.png=copy),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]

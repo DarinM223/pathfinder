@@ -11,20 +11,18 @@
 //
 // If you no longer want to use a dependency, remember
 // to also remove its path from "config.paths.watched".
-import 'phoenix_html'
-import 'jquery'
+import 'phoenix_html';
+import jQuery from 'jquery';
 
 // Import local files
 //
 // Local files can be imported directly using relative
 // paths "./socket" or full ones "web/static/js/socket".
 
-global.jQuery = require('jquery');
-global.bootstrap = require('bootstrap');
+window.$ = window.jQuery = jQuery;
 
-import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
-import { observer } from 'mobx-react';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 import { Game, GameView } from './game.jsx';
 import { Replay, ReplayView } from './replay.tsx';
 import socket from './socket.js';
@@ -33,18 +31,21 @@ const element = document.getElementById('game');
 if (element !== null) {
   const game = new Game(socket, element);
   const replays = element.getAttribute('data-replay');
+  const root = ReactDOM.createRoot(document.getElementById('game'));
   if (replays === null) {
-    ReactDOM.render(
-      <GameView game={game} />,
-      document.getElementById('game')
+    root.render(
+      <React.StrictMode>
+        <GameView game={game} />
+      </React.StrictMode>
     );
   } else {
     const changes = JSON.parse(replays);
     const playerId = element.getAttribute('data-playerid');
     const replay = new Replay(playerId, changes);
-    ReactDOM.render(
-      <ReplayView replay={replay} />,
-      document.getElementById('game')
+    root.render(
+      <React.StrictMode>
+        <ReplayView replay={replay} />
+      </React.StrictMode>
     );
   }
 }
